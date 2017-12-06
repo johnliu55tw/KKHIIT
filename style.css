@@ -1,0 +1,62 @@
+body {
+  width: 500px;
+  margin: 20px auto;
+  font-family: sans-serif;
+}
+
+/* Outer most container */
+.container {
+  width: 300px;
+  margin: auto;
+  border: black solid 5px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+
+/* Timer value */
+.timer-value {
+  font-size: 5em;
+}
+
+/* Status line */
+.status-line {
+  padding: 1em;
+  font-size: 1em;
+  font-style: italic;
+}
+
+.status-line ul {
+  padding: 0;
+  margin: 0 auto;
+  display: flex;
+  list-style: none;
+}
+
+.status-line ul li {
+  width: 100%;
+  text-align: center;
+  vertical-align: center;
+}
+
+/* Controller */
+.controller {
+  padding: 1em;
+  font-size: 1em;
+  margin: 0 auto;
+  display: flex;
+}
+
+.controller > .button {
+  margin: 2px;
+  border: 2px solid black;
+  border-radius: 2px;
+  cursor: pointer;
+  flex: 1;
+}
+
+/* Settings */
+.setting {
+  display: none;
+  border-top: 2px dashed black;
+}
