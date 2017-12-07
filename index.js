@@ -1,10 +1,6 @@
 /* Objects */
 
-function TimingSpec(warmup_secs,
-                    high_secs,
-                    low_secs,
-                    cooldown_secs,
-                    total_sets) {
+function TimingSpec(warmup_secs, high_secs, low_secs, cooldown_secs, total_sets) {
   this.warmup_secs = warmup_secs;
   this.high_secs = high_secs;
   this.low_secs = low_secs;
@@ -107,6 +103,51 @@ function zfill(val) {
   }
 }
 
+/* Correct the time string input by user, which should have "MM:SS" format and
+ * the maximum value for both value should be <= 59.
+ *
+ * Return:
+ *   null: Invalid string.
+ *
+ *   String: Corrected string for the input.
+ */
+function correct_time_string(t_str) {
+  var time_re = /^[0-9]{1,2}:[0-9]{1,2}$/;
+  var result = "";
+  if (time_re.test(t_str)) {
+    var mins = parseInt(t_str.split(":")[0]);
+    var secs = parseInt(t_str.split(":")[1]);
+    if (mins > 59 || secs > 59)
+      return null;
+    else
+      return zfill(mins) + ":" + zfill(secs);
+  } else {
+    return null;
+  }
+}
+
+/* Parse a string "MM:SS" input seconds.
+ *
+ * Return:
+ *   null: Invalid string.
+ *
+ *   Integer: Parsed time in seconds.
+ */
+function parse_time(t_str) {
+  t_str = correct_time_string(t_str);
+
+  if (t_str === null)
+    return null;
+
+  var mins = parseInt(t_str.split(":")[0]);
+  var secs = parseInt(t_str.split(":")[1]);
+
+  if (isNaN(mins) || isNaN(secs))
+    return null;
+  else
+    return mins * 60 + secs;
+}
+
 /* Functions for displaying */
 
 /* Big timer value */
@@ -137,9 +178,11 @@ function main() {
   var timer = new Timer(tSpec);
   var interval = null;
 
+  /* Buttons */
   var setting_btn = document.getElementById("setting-btn");
   var start_btn = document.getElementById("start-btn");
   var cancel_btn = document.getElementById("cancel-btn");
+  /* Inputs */
 
   function ticking() {
     timer.tick();
@@ -175,6 +218,16 @@ function main() {
       start_btn.textContent = "Start";
       clearInterval(interval);
       interval = null;
+    }
+  }
+
+  setting_btn.onclick = function() {
+    setting = document.querySelector("div.setting");
+    // Toggle setting container
+    if (setting.style.display === "" || setting.style.display === "none") {
+      setting.style.display = "flex";
+    } else {
+      setting.style.display = "none";
     }
   }
 }

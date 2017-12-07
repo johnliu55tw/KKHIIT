@@ -10,11 +10,11 @@
 <body>
   <div class="container">
     <div class="timer">
-      <span class="timer-value" id="timer-value">00:20</span>
+      <span class="timer-value" id="timer-value">00:00</span>
     </div>
     <div class="status-line">
       <ul class="statuses">
-        <li id="sets-value">00/20</li>
+        <li id="sets-value">00/00</li>
       </ul>
     </div>
     <div class="controller">
@@ -23,7 +23,18 @@
       <div class="button" id="cancel-btn">Cancel</div>
     </div>
     <div class="setting">
-      <span>Hello world!</span>
+      <div class="labels">
+        <span>Warm up</span>
+        <span>High</span>
+        <span>Low</span>
+        <span>Cooldown</span>
+      </div>
+      <div class="inpus">
+        <input id="warmup-input" placeholder="59:59">
+        <input id="high-input" placeholder="59:59">
+        <input id="low-input" placeholder="59:59">
+        <input id="cooldown-input" placeholder="59:59">
+      </div>
     </div>
   </div>
   <script src="./index.js"></script>

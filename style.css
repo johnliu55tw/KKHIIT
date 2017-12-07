@@ -56,7 +56,21 @@ body {
 }
 
 /* Settings */
-.setting {
+div.setting {
   display: none;
-  border-top: 2px dashed black;
+  flex-direction: row;
 }
+
+div.setting > div {
+  display: flex;
+  width: 50%;
+  flex-direction: column;
+}
+
+div.setting > div.labels > span {
+  display: block;
+  text-align: left;
+  padding-left: 1em;
+}
+
+div.setting
