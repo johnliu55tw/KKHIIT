@@ -103,30 +103,7 @@ function zfill(val) {
   }
 }
 
-/* Correct the time string input by user, which should have "MM:SS" format and
- * the maximum value for both value should be <= 59.
- *
- * Return:
- *   null: Invalid string.
- *
- *   String: Corrected string for the input.
- */
-function correct_time_string(t_str) {
-  var time_re = /^[0-9]{1,2}:[0-9]{1,2}$/;
-  var result = "";
-  if (time_re.test(t_str)) {
-    var mins = parseInt(t_str.split(":")[0]);
-    var secs = parseInt(t_str.split(":")[1]);
-    if (mins > 59 || secs > 59)
-      return null;
-    else
-      return zfill(mins) + ":" + zfill(secs);
-  } else {
-    return null;
-  }
-}
-
-/* Parse a string "MM:SS" input seconds.
+/* Parse a time string "MM:SS" string into seconds in total.
  *
  * Return:
  *   null: Invalid string.
@@ -134,18 +111,17 @@ function correct_time_string(t_str) {
  *   Integer: Parsed time in seconds.
  */
 function parse_time(t_str) {
-  t_str = correct_time_string(t_str);
-
-  if (t_str === null)
+  var time_re = /^[0-9]{1,2}:[0-9]{1,2}$/;
+  if (!time_re.test(t_str)) {
     return null;
-
-  var mins = parseInt(t_str.split(":")[0]);
-  var secs = parseInt(t_str.split(":")[1]);
-
-  if (isNaN(mins) || isNaN(secs))
-    return null;
-  else
-    return mins * 60 + secs;
+  } else {
+    var mins = parseInt(t_str.split(":")[0]);
+    var secs = parseInt(t_str.split(":")[1]);
+    if (mins > 59 || secs > 59)
+      return null;
+    else
+      return mins * 60 + secs;
+  }
 }
 
 /* Functions for displaying */
@@ -165,8 +141,8 @@ function set_sets_value(remain, total) {
 }
 
 /* Sets the background of the timer block */
-function set_container_background(r, g, b, a) {
-  document.getElementsByClassName("container")[0]
+function set_timer_background(r, g, b, a) {
+  document.getElementsByClassName("timer-status")[0]
           .style.backgroundColor = "rgba(" +
                                    r + "," + g + "," + b + "," + a + ")"
 }
@@ -174,15 +150,19 @@ function set_container_background(r, g, b, a) {
 /* Main function */
 function main() {
 
-  var tSpec = new TimingSpec(0, 1500, 300, 0, 10);
+  var tSpec = new TimingSpec(15, 20, 40, 300, 20);
   var timer = new Timer(tSpec);
   var interval = null;
+
+  set_timer_value(tSpec.warmup_secs);
+  set_sets_value(0, tSpec.total_sets);
+  set_timer_background(255, 255, 0, 1);
 
   /* Buttons */
   var setting_btn = document.getElementById("setting-btn");
   var start_btn = document.getElementById("start-btn");
-  var cancel_btn = document.getElementById("cancel-btn");
-  /* Inputs */
+  var reset_btn = document.getElementById("reset-btn");
+  reset_btn.disabled = true;
 
   function ticking() {
     timer.tick();
@@ -191,22 +171,25 @@ function main() {
       set_sets_value(timer.done_sets, timer.t_spec.total_sets);
       switch (timer.current_state) {
         case timer.IntervalState.WARMUP:
-          set_container_background(255, 255, 0, 0.9);
+          set_timer_background(255, 255, 0, 0.9);
           break;
         case timer.IntervalState.HIGH:
-          set_container_background(255, 0, 0, 0.9);
+          set_timer_background(255, 0, 0, 0.9);
           break;
         case timer.IntervalState.LOW:
-          set_container_background(0, 255, 0, 0.9);
+          set_timer_background(0, 255, 0, 0.9);
           break;
         case timer.IntervalState.COOLDOWN:
-          set_container_background(0, 0, 255, 0.9);
+          set_timer_background(0, 0, 255, 0.9);
           break;
       }
     } else {
+      console.log("Finished");
+      reset_btn.disabled = false;
       set_timer_value(0);
       set_sets_value(0, timer.t_spec.total_sets);
-      set_container_background(255, 255, 255, 1);
+      set_timer_background(255, 255, 0, 1);
+      clearInterval(interval);
     }
   }
 
@@ -214,10 +197,18 @@ function main() {
   start_btn.onclick = function() {
     if (start_btn.textContent === "Start") {
       start_btn.textContent = "Pause";
+      document.querySelectorAll(".setting input").forEach(function(input) {
+        input.disabled = true;
+      });
       interval = setInterval(ticking, 1000);
+      reset_btn.disabled = true;
     } else {
       start_btn.textContent = "Start";
+      document.querySelectorAll(".setting input").forEach(function(input) {
+        input.disabled = false;
+      });
       clearInterval(interval);
+      reset_btn.disabled = false;
       interval = null;
     }
   }
@@ -234,24 +225,41 @@ function main() {
     }
   }
 
+  reset_btn.onclick = function() {
+    if (interval !== null) {
+      clearInterval(interval);
+    }
+    timer = new Timer(tSpec);
+    set_timer_value(tSpec.warmup_secs);
+    set_sets_value(0, tSpec.total_sets);
+    set_timer_background(255, 255, 0, 1);
+    start_btn.textContent = "Start";
+  }
+
   /* Input field behavior */
   document.querySelectorAll("input.time").forEach(function(input) {
-    input.onkeyup = function() {
-      if (correct_time_string(input.value) === null) {
-        input.style.backgroundColor = "#FF5731";
+    input.oninput = function() {
+      if (parse_time(input.value) === null) {
+        this.style.backgroundColor = "#FF5731";
+        start_btn.disabled = true;
+        setting_btn.disabled = true;
         return;
       } else {
-        input.style.backgroundColor = "white";
+        start_btn.disabled = false;
+        setting_btn.disabled = false;
+        this.style.backgroundColor = "white";
         tSpec = new TimingSpec(
                       parse_time(document.querySelector("input.warmup").value),
                       parse_time(document.querySelector("input.high").value),
                       parse_time(document.querySelector("input.low").value),
                       parse_time(document.querySelector("input.cooldown").value),
-                      document.querySelector("input.sets").value);
+                      parseInt(document.querySelector("input.sets").value));
         timer = new Timer(tSpec);
+        set_timer_value(tSpec.warmup_secs);
+        set_sets_value(0, tSpec.total_sets);
+        set_timer_background(255, 255, 0, 1);
       }
     }
-
     input.onblur = input.onkeyup;
 
     input.onfocus = function() {
@@ -259,6 +267,26 @@ function main() {
       input.style.backgroundColor = "white";
     }
   });
+    
+  sets_input = document.querySelector("input.sets");
+  sets_input.oninput = function() {
+    if (this.value > 99) this.value = 99;
+    if (this.value < 1) this.value = 1;
+    this.style.backgroundColor = "white";
+    tSpec = new TimingSpec(
+                  parse_time(document.querySelector("input.warmup").value),
+                  parse_time(document.querySelector("input.high").value),
+                  parse_time(document.querySelector("input.low").value),
+                  parse_time(document.querySelector("input.cooldown").value),
+                  parseInt(document.querySelector("input.sets").value));
+    timer = new Timer(tSpec);
+    set_timer_value(tSpec.warmup_secs);
+    set_sets_value(0, tSpec.total_sets);
+    set_timer_background(255, 255, 0, 1);
+  }
+  sets_input.onfocus = function() {
+    sets_input.select();
+  }
 }
 
 main();

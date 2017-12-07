@@ -9,18 +9,20 @@
 
 <body>
   <div class="container">
-    <div class="timer">
-      <span class="timer-value" id="timer-value">00:00</span>
-    </div>
-    <div class="status-line">
-      <ul class="statuses">
-        <li id="sets-value">00/00</li>
-      </ul>
+    <div class="timer-status">
+      <div class="timer">
+        <span class="timer-value" id="timer-value">--:--</span>
+      </div>
+      <div class="status-line">
+        <ul class="statuses">
+          <li id="sets-value">--/--</li>
+        </ul>
+      </div>
     </div>
     <div class="controller">
-      <div class="button" id="setting-btn">Setting</div>
-      <div class="button" id="start-btn">Start</div>
-      <div class="button" id="cancel-btn">Cancel</div>
+      <button id="setting-btn">Setting</button>
+      <button id="start-btn">Start</button>
+      <button id="reset-btn">Reset</button>
     </div>
     <div class="setting">
       <div class="setting-field">

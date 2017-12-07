@@ -41,18 +41,28 @@ body {
 
 /* Controller */
 .controller {
+  background: #CCCCCC;
   padding: 1em;
   font-size: 1em;
   margin: 0 auto;
   display: flex;
+  justify-content: space-between;
 }
 
-.controller > .button {
+.controller > button {
+  width: 6em;
+  height: 3em;
+  display: block;
+  background-color: white;
   margin: 2px;
   border: 2px solid black;
   border-radius: 2px;
   cursor: pointer;
-  flex: 1;
+}
+
+.controller > button:disabled {
+  border: 2px solid gray;
+  background-color: white;
 }
 
 /* Settings */
@@ -77,4 +87,8 @@ div.setting div.setting-field > input {
   border: none;
   border-bottom: 1px ridge black;
   padding-left: 0.5em;
+}
+
+div.setting div.setting-field > input:disabled {
+  color: #CCCCCC;
 }
