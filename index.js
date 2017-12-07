@@ -1,4 +1,5 @@
 /* Objects */
+
 function TimingSpec(warmup_secs,
                     high_secs,
                     low_secs,
@@ -9,7 +10,7 @@ function TimingSpec(warmup_secs,
   this.low_secs = low_secs;
   this.cooldown_secs = cooldown_secs;
   this.total_sets = total_sets;
-  this.total_time = function() {
+  this.get_total_time = function() {
     return this.warmup_secs + this.cooldown_secs +
            (this.high_secs + this.low_secs) * this.total_sets
   }
@@ -17,77 +18,81 @@ function TimingSpec(warmup_secs,
 
 function Timer(t_spec) {
   /* Enum */
-  var IntervalState = {
-    IDLE: "idle",
+  this.IntervalState = {
     WARMUP: "warm up",
     HIGH: "high",
     LOW: "low",
-    COOLDOWN: "cool down"
+    COOLDOWN: "cool down",
+    DONE: "done"
   }
-  // Copy the TimingSpec object
-  this.t_spec = t_spec; // Read-only object for recording spec
-  this.current_state = IntervalState.WARMUP;
-  this.counter = 0;
 
+  this.t_spec = Object.assign({}, t_spec);
+
+  /* Setting up initial state */
+  // Initial state will be HIGH if warm up time is to 0
+  if (t_spec.warmup_secs === 0) {
+    this.current_state = this.IntervalState.HIGH;
+    this.counter = this.t_spec.high_secs;
+  } else {
+    this.current_state = this.IntervalState.WARMUP;
+    this.counter = this.t_spec.warmup_secs;
+  }
+  // Counter for counting sets
+  // Whenever a high interval is finished, it will be increased by 1
+  this.done_sets = 0;
+  
+  /* Interfaces */
   /* The tick() method will update its internal state. */
   this.tick = function() {
+    this.counter -= 1;
     switch(this.current_state) {
-      case IntervalState.IDLE:
-        this.counter = this.t_spec.warmup_secs;
-        this.current_state = IntervalState.WARMUP;
+      case this.IntervalState.WARMUP:
+        if (this.counter === 0) {
+          this.counter = this.t_spec.high_secs;
+          this.current_state = this.IntervalState.HIGH;
+        }
         break;
-      case IntervalState.WARMUP:
+
+      case this.IntervalState.HIGH:
+        if (this.counter === 0) {
+          this.done_sets += 1;
+          this.counter = this.t_spec.low_secs;
+          this.current_state = this.IntervalState.LOW;
+        }
         break;
-      case IntervalState.HIGH:
+
+      case this.IntervalState.LOW:
+        if (this.counter === 0) {
+          if (this.done_sets === this.t_spec.total_sets) {
+            // All sets are done! Congradulations!
+            this.counter = this.t_spec.cooldown_secs;
+            if (this.t_spec.cooldown_secs === 0) {
+              this.current_state = this.IntervalState.DONE;
+            } else {
+              this.current_state = this.IntervalState.COOLDOWN;
+            }
+          } else {
+            // ISYMFS!!
+            this.counter = this.t_spec.high_secs;
+            this.current_state = this.IntervalState.HIGH;
+          }
+        }
         break;
-      case IntervalState.LOW:
+
+      case this.IntervalState.COOLDOWN:
+        if (this.counter === 0) {
+          this.counter = 0;
+          this.current_state = this.IntervalState.DONE;
+        }
         break;
-      case IntervalState.COOLDOWN:
+
+      case this.IntervalState.DONE:
         break;
+
       default:
         console.log("Impossible to reach.");
     }
     return;
-
-    if (this.t_state.warmup_secs !=== 0) {
-      this.t_state.warmup_secs -= 1;
-      this.current_interval = IntervalState.WARMUP;
-      return;
-    }
-
-    if (this.t_state.high_secs !=== 0) {
-      this.t_state.high_secs -= 1;
-      this.current_interval = IntervalState.HIGH;
-      return;
-    } else if (this.t_state.low_secs !=== 0) {
-      this.t_state.low_secs -= 1;
-      this.current_interval = IntervalState.LOW;
-      return;
-    } else if (this.t_state.total_sets !=== 1) { // It's 1, not 0. Just count it ;)
-      this.t_state.total_sets -= 1;
-      // At this time, one second already passed in the high interval
-      this.t_state.high_secs = this.t_spec.high_secs - 1;
-      this.t_state.low_secs = this.t_spec.low_secs;
-      this.current_interval = IntervalState.HIGH;
-      return;
-    }
-
-    if (this.t_state.cooldown_secs !=== 0) {
-      this.t_state.cooldown_secs -= 1;
-      this.current_interval = IntervalState.COOLDOWN;
-      return;
-    }
-
-    this.current_interval = IntervalState.IDLE;
-    return;
-  }
-
-  this.remain_sets = function() {
-    return this.t_state.total_sets;
-  }
-
-  this.total_sets = function() {
-    return this.t_spec.total_sets;
   }
 }
 
@@ -102,7 +107,7 @@ function zfill(val) {
   }
 }
 
-/* Functions for displaying data */
+/* Functions for displaying */
 
 /* Big timer value */
 function set_timer_value(secs) {
@@ -115,43 +120,63 @@ function set_timer_value(secs) {
 /* Sets value */
 function set_sets_value(remain, total) {
   var sets_value = document.getElementById("sets-value");
-  timer_value.textContent = remain + "/" + total;
+  sets_value.textContent = zfill(remain) + "/" + zfill(total);
+}
+
+/* Sets the background of the timer block */
+function set_container_background(r, g, b, a) {
+  document.getElementsByClassName("container")[0]
+          .style.backgroundColor = "rgba(" +
+                                   r + "," + g + "," + b + "," + a + ")"
 }
 
 /* Main function */
 function main() {
 
-  var tSpec = new TimingSpec(3, 5, 10, 4, 2);
+  var tSpec = new TimingSpec(0, 1500, 300, 0, 10);
   var timer = new Timer(tSpec);
   var interval = null;
 
-  var cancel_btn = document.getElementById("setting-btn");
+  var setting_btn = document.getElementById("setting-btn");
   var start_btn = document.getElementById("start-btn");
   var cancel_btn = document.getElementById("cancel-btn");
 
-  function counting() {
-    var timer_secs = timer.tick();
-    if (timer_secs === null) {
-      // Stop timer and reset start-btn state
-      clearInterval(interval);
-      interval = null;
-      start_btn.textContent = "Start";
+  function ticking() {
+    timer.tick();
+    if (timer.current_state !== timer.IntervalState.DONE) {
+      set_timer_value(timer.counter);
+      set_sets_value(timer.done_sets, timer.t_spec.total_sets);
+      switch (timer.current_state) {
+        case timer.IntervalState.WARMUP:
+          set_container_background(255, 255, 0, 0.9);
+          break;
+        case timer.IntervalState.HIGH:
+          set_container_background(255, 0, 0, 0.9);
+          break;
+        case timer.IntervalState.LOW:
+          set_container_background(0, 255, 0, 0.9);
+          break;
+        case timer.IntervalState.COOLDOWN:
+          set_container_background(0, 0, 255, 0.9);
+          break;
+      }
     } else {
-      set_timer_value(timer_secs);
-      set_sets_value(timer.t_state.
-      
+      set_timer_value(0);
+      set_sets_value(0, timer.t_spec.total_sets);
+      set_container_background(255, 255, 255, 1);
+    }
   }
-
-
 
   start_btn.onclick = function() {
     if (start_btn.textContent === "Start") {
       start_btn.textContent = "Pause";
-      interval = setInterval(counting, 1000);
+      interval = setInterval(ticking, 1000);
     } else {
       start_btn.textContent = "Start";
-      clearInterval(interval_t);
+      clearInterval(interval);
       interval = null;
     }
   }
 }
+
+main();
