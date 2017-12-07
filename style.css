@@ -57,20 +57,24 @@ body {
 
 /* Settings */
 div.setting {
-  display: none;
-  flex-direction: row;
-}
-
-div.setting > div {
   display: flex;
-  width: 50%;
   flex-direction: column;
 }
 
-div.setting > div.labels > span {
-  display: block;
-  text-align: left;
-  padding-left: 1em;
+div.setting div.setting-field {
+  display: flex;
+  border-top: 2px solid #CCDDCC;
+  justify-content: space-between;
 }
 
-div.setting
+div.setting div.setting-field > span, input {
+  margin: 0.5em;
+}
+
+div.setting div.setting-field > input {
+  background-color: #EFEFEF;
+  outline: none;
+  border: none;
+  border-bottom: 1px ridge black;
+  padding-left: 0.5em;
+}

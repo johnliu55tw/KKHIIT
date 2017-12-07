@@ -36,7 +36,7 @@ function Timer(t_spec) {
   // Counter for counting sets
   // Whenever a high interval is finished, it will be increased by 1
   this.done_sets = 0;
-  
+
   /* Interfaces */
   /* The tick() method will update its internal state. */
   this.tick = function() {
@@ -210,6 +210,7 @@ function main() {
     }
   }
 
+  /* Buttons behavior */
   start_btn.onclick = function() {
     if (start_btn.textContent === "Start") {
       start_btn.textContent = "Pause";
@@ -223,13 +224,41 @@ function main() {
 
   setting_btn.onclick = function() {
     setting = document.querySelector("div.setting");
-    // Toggle setting container
-    if (setting.style.display === "" || setting.style.display === "none") {
+
+    if (setting.style.display === "") { // Default value
+      setting.style.display = "none";
+    } else if (setting.style.display === "none") {
       setting.style.display = "flex";
     } else {
       setting.style.display = "none";
     }
   }
+
+  /* Input field behavior */
+  document.querySelectorAll("input.time").forEach(function(input) {
+    input.onkeyup = function() {
+      if (correct_time_string(input.value) === null) {
+        input.style.backgroundColor = "#FF5731";
+        return;
+      } else {
+        input.style.backgroundColor = "white";
+        tSpec = new TimingSpec(
+                      parse_time(document.querySelector("input.warmup").value),
+                      parse_time(document.querySelector("input.high").value),
+                      parse_time(document.querySelector("input.low").value),
+                      parse_time(document.querySelector("input.cooldown").value),
+                      document.querySelector("input.sets").value);
+        timer = new Timer(tSpec);
+      }
+    }
+
+    input.onblur = input.onkeyup;
+
+    input.onfocus = function() {
+      input.select();
+      input.style.backgroundColor = "white";
+    }
+  });
 }
 
 main();
