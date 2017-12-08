@@ -189,6 +189,7 @@ function setTimerBackground (r, g, b, a) {
 function main () {
   var tSpec = new TimingSpec(15, 20, 40, 300, 20)
   var timer = new Timer(tSpec)
+  var prevTimerState = null
   var intervalTimer = null
 
   setTimerValue(tSpec.warmupSecs)
@@ -201,8 +202,15 @@ function main () {
   var resetBtn = document.getElementById('reset-btn')
   resetBtn.disabled = true
 
+  /* Sounds */
+  var beepSound = document.getElementById('beep-sound')
+
   function ticking () {
     timer.tick()
+    if (timer.currentState !== prevTimerState) {
+      beepSound.play()
+    }
+    prevTimerState = timer.currentState
     if (timer.currentState !== timer.IntervalState.DONE) {
       setTimerValue(timer.counter)
       setSetsValue(timer.doneSets, timer.tSpec.totalSets)
