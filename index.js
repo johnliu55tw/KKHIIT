@@ -83,10 +83,10 @@ TimingSpec.prototype.parseTime = function (strOrNumber) {
   }
 }
 
-function Timer (tSpec) {
+function Timer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) {
   /* Constructor
    *
-   * Takes a TimingSpec object to create a Timer.
+   * Takes a TimingSpec and three callback functions for state changes as arguments.
    *
    */
 
@@ -109,8 +109,21 @@ function Timer (tSpec) {
   this.doneSets = 0
 
   /* Interfaces */
-  /* The tick() method will update its internal state. */
+
+  /* State changed handlers */
+  this.onIntervalChange = onIntervalChange
+  this.onCounterChange = onCounterChange
+  this.onDoneSetsChange = onDoneSetsChange
+
+  /* The tick() method will update its internal state, and will notify state
+   * change handlers if state changed.
+   */
   this.tick = function () {
+    // Stores states before entering updating algorithm for detecting state changed
+    var prevIntervalState = this.currentState
+    var prevCounter = this.counter
+    var prevDoneSets = this.doneSets
+
     this.counter -= 1
     switch (this.currentState) {
       case this.IntervalState.WARMUP:
@@ -158,6 +171,15 @@ function Timer (tSpec) {
 
       default:
         console.log('Impossible to reach.')
+    }
+    if (prevIntervalState !== this.currentState && this.onIntervalChange !== undefined) {
+      this.onIntervalChange()
+    }
+    if (prevCounter !== this.currentState && this.onCounterChange !== undefined) {
+      this.onCounterChange()
+    }
+    if (prevDoneSets !== this.doneSets && this.onDoneSetsChange !== undefined) {
+      this.onDoneSetsChange()
     }
   }
 }
