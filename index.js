@@ -32,8 +32,10 @@ function TimingSpec (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
   } catch (e) {
     throw new Error('Unable to create TimingSpec: ' + e.message)
   }
-
-  if (totalSets > MAX_SETS) {
+  totalSets = parseInt(totalSets)
+  if (isNaN(totalSets)) {
+    throw new Error('Unable to create TimingSpec: Sets arg. is not a number.')
+  } else if (totalSets > MAX_SETS) {
     throw new Error('Unable to create TimingSpec: Sets over ' + MAX_SETS + '.')
   } else if (totalSets < 1) {
     throw new Error('Unable to create TimingSpec: Sets cannot be less than 1.')
@@ -172,6 +174,7 @@ function Timer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) {
       default:
         console.log('Impossible to reach.')
     }
+    // Calling assigned handlers if states changed
     if (prevIntervalState !== this.currentState && this.onIntervalChange !== undefined) {
       this.onIntervalChange()
     }
@@ -210,8 +213,6 @@ function setTimerBackground (r, g, b, a) {
 /* Main function */
 function main () {
   var tSpec = new TimingSpec(15, 20, 40, 300, 20)
-  var timer = new Timer(tSpec)
-  var prevTimerState = null
   var intervalTimer = null
 
   setTimerValue(tSpec.warmupSecs)
@@ -227,37 +228,46 @@ function main () {
   /* Sounds */
   var beepSound = document.getElementById('beep-sound')
 
-  function ticking () {
+  function onIntervalChangeHandler () {
+    beepSound.play()
+    switch (this.currentState) {
+      case this.IntervalState.WARMUP:
+        setTimerBackground(255, 255, 0, 0.9)
+        break
+      case this.IntervalState.HIGH:
+        setTimerBackground(255, 0, 0, 0.9)
+        break
+      case this.IntervalState.LOW:
+        setTimerBackground(0, 255, 0, 0.9)
+        break
+      case this.IntervalState.COOLDOWN:
+        setTimerBackground(0, 0, 255, 0.9)
+        break
+      case this.IntervalState.DONE:
+        resetBtn.disabled = false
+        setTimerValue(0)
+        setSetsValue(0, timer.tSpec.totalSets)
+        setTimerBackground(255, 255, 0, 1)
+        clearInterval(intervalTimer)
+        break
+    }
+  }
+
+  function onCounterChangeHandler () {
+    setTimerValue(this.counter)
+  }
+
+  function onDoneSetsChangeHandler () {
+    setSetsValue(this.doneSets, this.tSpec.totalSets)
+  }
+
+  var timer = new Timer(tSpec,
+                        onIntervalChangeHandler,
+                        onCounterChangeHandler,
+                        onDoneSetsChangeHandler)
+
+  function onIntervelTimerEvent () {
     timer.tick()
-    if (timer.currentState !== prevTimerState) {
-      beepSound.play()
-    }
-    prevTimerState = timer.currentState
-    if (timer.currentState !== timer.IntervalState.DONE) {
-      setTimerValue(timer.counter)
-      setSetsValue(timer.doneSets, timer.tSpec.totalSets)
-      switch (timer.currentState) {
-        case timer.IntervalState.WARMUP:
-          setTimerBackground(255, 255, 0, 0.9)
-          break
-        case timer.IntervalState.HIGH:
-          setTimerBackground(255, 0, 0, 0.9)
-          break
-        case timer.IntervalState.LOW:
-          setTimerBackground(0, 255, 0, 0.9)
-          break
-        case timer.IntervalState.COOLDOWN:
-          setTimerBackground(0, 0, 255, 0.9)
-          break
-      }
-    } else {
-      console.log('Finished')
-      resetBtn.disabled = false
-      setTimerValue(0)
-      setSetsValue(0, timer.tSpec.totalSets)
-      setTimerBackground(255, 255, 0, 1)
-      clearInterval(intervalTimer)
-    }
   }
 
   /* Buttons behavior */
@@ -267,7 +277,7 @@ function main () {
       document.querySelectorAll('.setting input').forEach(function (input) {
         input.disabled = true
       })
-      intervalTimer = setInterval(ticking, 1000)
+      intervalTimer = setInterval(onIntervelTimerEvent, 1000)
       resetBtn.disabled = true
     } else {
       startBtn.textContent = 'Start'
@@ -296,7 +306,10 @@ function main () {
     if (intervalTimer !== null) {
       clearInterval(intervalTimer)
     }
-    timer = new Timer(tSpec)
+    timer = new Timer(tSpec,
+                      onIntervalChangeHandler,
+                      onCounterChangeHandler,
+                      onDoneSetsChangeHandler)
     setTimerValue(tSpec.warmupSecs)
     setSetsValue(0, tSpec.totalSets)
     setTimerBackground(255, 255, 0, 1)
@@ -320,7 +333,10 @@ function main () {
         return
       }
       // Verified
-      timer = new Timer(tSpec)
+      timer = new Timer(tSpec,
+                        onIntervalChangeHandler,
+                        onCounterChangeHandler,
+                        onDoneSetsChangeHandler)
       this.style.backgroundColor = 'white'
       setTimerValue(tSpec.warmupSecs)
       setSetsValue(0, tSpec.totalSets)
