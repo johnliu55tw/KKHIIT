@@ -1,19 +1,96 @@
+/* Constants */
+
+var MAX_SETS = 99
+var MAX_MINS = 59
+var MAX_SECS = 59
+
+/* Utility functions */
+
+function zfill (val) {
+  /* Padding one zero on the left to reach length 2. */
+  if (Math.floor(val / 10) >= 1) {
+    return val.toString()
+  } else {
+    return '0' + val.toString()
+  }
+}
+
 /* Objects */
 
 function TimingSpec (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
-  this.warmupSecs = warmupSecs
-  this.highSecs = highSecs
-  this.lowSecs = lowSecs
-  this.cooldownSecs = cooldownSecs
-  this.totalSets = totalSets
-  this.getTotalTime = function () {
-    return this.warmupSecs + this.cooldownSecs +
-           (this.highSecs + this.lowSecs) * this.totalSecs
+  /* Constructor
+   *
+   * For *Secs arguments, they take either a string representation of "MM:SS",
+   * or a number in seconds.
+   *
+   */
+  try {
+    this.warmupSecs = this.parseTime(warmupSecs)
+    this.highSecs = this.parseTime(highSecs)
+    this.lowSecs = this.parseTime(lowSecs)
+    this.cooldownSecs = this.parseTime(cooldownSecs)
+  } catch (e) {
+    throw new Error('Unable to create TimingSpec: ' + e.message)
+  }
+
+  if (totalSets > MAX_SETS) {
+    throw new Error('Unable to create TimingSpec: Sets over ' + MAX_SETS + '.')
+  } else if (totalSets < 1) {
+    throw new Error('Unable to create TimingSpec: Sets cannot be less than 1.')
+  } else {
+    this.totalSets = totalSets
+  }
+}
+TimingSpec.prototype.parseTime = function (strOrNumber) {
+  /* UNBOUND METHOD
+   *
+   * Parse a string "MM:SS" into seconds. If it's number, check the value and
+   * returns it directly.
+   *
+   * Return:
+   *   Integer: Parsed time in seconds.
+   *
+   * Throws:
+   *   - Invalid format
+   *   - Minutes or seconds value exceed maximum (59)
+   */
+  if (typeof strOrNumber === 'string') {
+    var tStr = strOrNumber
+    var timeRe = /^[0-9]{1,2}:[0-9]{1,2}$/
+    if (!timeRe.test(tStr)) {
+      throw new Error('Invalid format.')
+    } else {
+      var mins = parseInt(tStr.split(':')[0])
+      var secs = parseInt(tStr.split(':')[1])
+      if (mins > MAX_MINS) {
+        throw new Error('Minutes value exceed maximum value 59.')
+      } else if (secs > MAX_SECS) {
+        throw new Error('seconds value exceed maximum value 59.')
+      } else {
+        return mins * 60 + secs
+      }
+    }
+  } else if (typeof strOrNumber === 'number') {
+    var number = strOrNumber
+    if (number <= (MAX_MINS * 60 + MAX_SECS)) {
+      return number
+    } else {
+      throw new Error('Total seconds ' +
+                      number.toString() +
+                      ' exceed maximum ' +
+                      (MAX_MINS * 60 + MAX_SECS))
+    }
   }
 }
 
 function Timer (tSpec) {
-  /* Enum */
+  /* Constructor
+   *
+   * Takes a TimingSpec object to create a Timer.
+   *
+   */
+
+  // State enum
   this.IntervalState = {
     WARMUP: 'warm up',
     HIGH: 'high',
@@ -91,53 +168,24 @@ function Timer (tSpec) {
   }
 }
 
-/* Utility functions */
-
-/* Padding one zero on the left to reach length 2. */
-function zfill (val) {
-  if (Math.floor(val / 10) >= 1) {
-    return val.toString()
-  } else {
-    return '0' + val.toString()
-  }
-}
-
-/* Parse a time string "MM:SS" string into seconds in total.
- *
- * Return:
- *   null: Invalid string.
- *
- *   Integer: Parsed time in seconds.
- */
-function parseTime (tStr) {
-  var timeRe = /^[0-9]{1,2}:[0-9]{1,2}$/
-  if (!timeRe.test(tStr)) {
-    return null
-  } else {
-    var mins = parseInt(tStr.split(':')[0])
-    var secs = parseInt(tStr.split(':')[1])
-    if (mins > 59 || secs > 59) { return null } else { return mins * 60 + secs }
-  }
-}
-
 /* Functions for displaying */
 
-/* Big timer value */
 function setTimerValue (secs) {
+  /* Set the main countdown timer value */
   var minPart = Math.floor(secs / 60)
   var secPart = secs % 60
   var timerValue = document.getElementById('timer-value')
   timerValue.textContent = zfill(minPart) + ':' + zfill(secPart)
 }
 
-/* Sets value */
 function setSetsValue (remain, total) {
+  /* Set the 'finished/total' sets value */
   var setsValue = document.getElementById('sets-value')
   setsValue.textContent = zfill(remain) + '/' + zfill(total)
 }
 
-/* Sets the background of the timer block */
 function setTimerBackground (r, g, b, a) {
+  /* Sets the background of the timer block */
   document.getElementsByClassName('timer-status')[0]
           .style.backgroundColor = 'rgba(' +
                                    r + ',' + g + ',' + b + ',' + a + ')'
@@ -147,7 +195,7 @@ function setTimerBackground (r, g, b, a) {
 function main () {
   var tSpec = new TimingSpec(15, 20, 40, 300, 20)
   var timer = new Timer(tSpec)
-  var interval = null
+  var intervalTimer = null
 
   setTimerValue(tSpec.warmupSecs)
   setSetsValue(0, tSpec.totalSets)
@@ -184,7 +232,7 @@ function main () {
       setTimerValue(0)
       setSetsValue(0, timer.tSpec.totalSets)
       setTimerBackground(255, 255, 0, 1)
-      clearInterval(interval)
+      clearInterval(intervalTimer)
     }
   }
 
@@ -195,16 +243,16 @@ function main () {
       document.querySelectorAll('.setting input').forEach(function (input) {
         input.disabled = true
       })
-      interval = setInterval(ticking, 1000)
+      intervalTimer = setInterval(ticking, 1000)
       resetBtn.disabled = true
     } else {
       startBtn.textContent = 'Start'
       document.querySelectorAll('.setting input').forEach(function (input) {
         input.disabled = false
       })
-      clearInterval(interval)
+      clearInterval(intervalTimer)
       resetBtn.disabled = false
-      interval = null
+      intervalTimer = null
     }
   }
 
@@ -221,8 +269,8 @@ function main () {
   }
 
   resetBtn.onclick = function () {
-    if (interval !== null) {
-      clearInterval(interval)
+    if (intervalTimer !== null) {
+      clearInterval(intervalTimer)
     }
     timer = new Timer(tSpec)
     setTimerValue(tSpec.warmupSecs)
@@ -231,56 +279,39 @@ function main () {
     startBtn.textContent = 'Start'
   }
 
-  /* Input field behavior */
-  document.querySelectorAll('input.time').forEach(function (input) {
+  /* Input fields behavior */
+  document.querySelectorAll('.setting input').forEach(function (input) {
     input.oninput = function () {
-      if (parseTime(input.value) === null) {
+      try {
+        // Verify all the input field if any input field has inputs
+        tSpec = new TimingSpec(document.querySelector('input.warmup').value,
+                               document.querySelector('input.high').value,
+                               document.querySelector('input.low').value,
+                               document.querySelector('input.cooldown').value,
+                               document.querySelector('input.sets').value)
+      } catch (e) {
         this.style.backgroundColor = '#FF5731'
         startBtn.disabled = true
         settingBtn.disabled = true
-      } else {
-        startBtn.disabled = false
-        settingBtn.disabled = false
-        this.style.backgroundColor = 'white'
-        tSpec = new TimingSpec(
-                      parseTime(document.querySelector('input.warmup').value),
-                      parseTime(document.querySelector('input.high').value),
-                      parseTime(document.querySelector('input.low').value),
-                      parseTime(document.querySelector('input.cooldown').value),
-                      parseInt(document.querySelector('input.sets').value))
-        timer = new Timer(tSpec)
-        setTimerValue(tSpec.warmupSecs)
-        setSetsValue(0, tSpec.totalSets)
-        setTimerBackground(255, 255, 0, 1)
+        return
       }
+      // Verified
+      timer = new Timer(tSpec)
+      this.style.backgroundColor = 'white'
+      setTimerValue(tSpec.warmupSecs)
+      setSetsValue(0, tSpec.totalSets)
+      setTimerBackground(255, 255, 0, 1)
+      startBtn.disabled = false
+      settingBtn.disabled = false
     }
-    input.onblur = input.onkeyup
+
+    input.onblur = input.oninput
 
     input.onfocus = function () {
       input.select()
       input.style.backgroundColor = 'white'
     }
   })
-
-  var setsInput = document.querySelector('input.sets')
-  setsInput.oninput = function () {
-    if (this.value > 99) this.value = 99
-    if (this.value < 1) this.value = 1
-    this.style.backgroundColor = 'white'
-    tSpec = new TimingSpec(
-                  parseTime(document.querySelector('input.warmup').value),
-                  parseTime(document.querySelector('input.high').value),
-                  parseTime(document.querySelector('input.low').value),
-                  parseTime(document.querySelector('input.cooldown').value),
-                  parseInt(document.querySelector('input.sets').value))
-    timer = new Timer(tSpec)
-    setTimerValue(tSpec.warmupSecs)
-    setSetsValue(0, tSpec.totalSets)
-    setTimerBackground(255, 255, 0, 1)
-  }
-  setsInput.onfocus = function () {
-    setsInput.select()
-  }
 }
 
 main()

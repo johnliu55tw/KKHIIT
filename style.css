@@ -82,7 +82,6 @@ div.setting div.setting-field > span, input {
 }
 
 div.setting div.setting-field > input {
-  background-color: #EFEFEF;
   outline: none;
   border: none;
   border-bottom: 1px ridge black;
