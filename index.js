@@ -102,14 +102,8 @@ function Timer (tSpec) {
   this.tSpec = Object.assign({}, tSpec)
 
   /* Setting up initial state */
-  // Initial state will be HIGH if warm up time is to 0
-  if (tSpec.warmupSecs === 0) {
-    this.currentState = this.IntervalState.HIGH
-    this.counter = this.tSpec.highSecs
-  } else {
-    this.currentState = this.IntervalState.WARMUP
-    this.counter = this.tSpec.warmupSecs
-  }
+  this.currentState = this.IntervalState.WARMUP
+  this.counter = this.tSpec.warmupSecs
   // Counter for counting sets
   // Whenever a high interval is finished, it will be increased by 1
   this.doneSets = 0
@@ -120,14 +114,14 @@ function Timer (tSpec) {
     this.counter -= 1
     switch (this.currentState) {
       case this.IntervalState.WARMUP:
-        if (this.counter === 0) {
+        if (this.counter <= 0) {
           this.counter = this.tSpec.highSecs
           this.currentState = this.IntervalState.HIGH
         }
         break
 
       case this.IntervalState.HIGH:
-        if (this.counter === 0) {
+        if (this.counter <= 0) {
           this.doneSets += 1
           this.counter = this.tSpec.lowSecs
           this.currentState = this.IntervalState.LOW
@@ -135,11 +129,11 @@ function Timer (tSpec) {
         break
 
       case this.IntervalState.LOW:
-        if (this.counter === 0) {
+        if (this.counter <= 0) {
           if (this.doneSets === this.tSpec.totalSets) {
             // All sets are done! Congradulations!
             this.counter = this.tSpec.cooldownSecs
-            if (this.tSpec.cooldownSecs === 0) {
+            if (this.tSpec.cooldownSecs <= 0) {
               this.currentState = this.IntervalState.DONE
             } else {
               this.currentState = this.IntervalState.COOLDOWN
@@ -153,7 +147,7 @@ function Timer (tSpec) {
         break
 
       case this.IntervalState.COOLDOWN:
-        if (this.counter === 0) {
+        if (this.counter <= 0) {
           this.counter = 0
           this.currentState = this.IntervalState.DONE
         }
