@@ -85,7 +85,7 @@ TimingSpec.prototype.parseTime = function (strOrNumber) {
   }
 }
 
-function Timer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) {
+function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) {
   /* Constructor
    *
    * Takes a TimingSpec and three callback functions for state changes as arguments.
@@ -213,7 +213,7 @@ function setTimerBackground (r, g, b, a) {
 /* Main function */
 function main () {
   var tSpec = new TimingSpec(15, 20, 40, 300, 20)
-  var intervalTimer = null
+  var intervalHandler = null
 
   setTimerValue(tSpec.warmupSecs)
   setSetsValue(0, tSpec.totalSets)
@@ -246,9 +246,9 @@ function main () {
       case this.IntervalState.DONE:
         resetBtn.disabled = false
         setTimerValue(0)
-        setSetsValue(0, timer.tSpec.totalSets)
+        setSetsValue(0, hiitTimer.tSpec.totalSets)
         setTimerBackground(255, 255, 0, 1)
-        clearInterval(intervalTimer)
+        clearInterval(intervalHandler)
         break
     }
   }
@@ -261,13 +261,13 @@ function main () {
     setSetsValue(this.doneSets, this.tSpec.totalSets)
   }
 
-  var timer = new Timer(tSpec,
+  var hiitTimer = new HiitTimer(tSpec,
                         onIntervalChangeHandler,
                         onCounterChangeHandler,
                         onDoneSetsChangeHandler)
 
   function onIntervelTimerEvent () {
-    timer.tick()
+    hiitTimer.tick()
   }
 
   /* Buttons behavior */
@@ -277,16 +277,16 @@ function main () {
       document.querySelectorAll('.setting input').forEach(function (input) {
         input.disabled = true
       })
-      intervalTimer = setInterval(onIntervelTimerEvent, 1000)
+      intervalHandler = setInterval(onIntervelTimerEvent, 1000)
       resetBtn.disabled = true
     } else {
       startBtn.textContent = 'Start'
       document.querySelectorAll('.setting input').forEach(function (input) {
         input.disabled = false
       })
-      clearInterval(intervalTimer)
+      clearInterval(intervalHandler)
       resetBtn.disabled = false
-      intervalTimer = null
+      intervalHandler = null
     }
   }
 
@@ -303,10 +303,10 @@ function main () {
   }
 
   resetBtn.onclick = function () {
-    if (intervalTimer !== null) {
-      clearInterval(intervalTimer)
+    if (intervalHandler !== null) {
+      clearInterval(intervalHandler)
     }
-    timer = new Timer(tSpec,
+    hiitTimer = new HiitTimer(tSpec,
                       onIntervalChangeHandler,
                       onCounterChangeHandler,
                       onDoneSetsChangeHandler)
@@ -333,7 +333,7 @@ function main () {
         return
       }
       // Verified
-      timer = new Timer(tSpec,
+      hiitTimer = new HiitTimer(tSpec,
                         onIntervalChangeHandler,
                         onCounterChangeHandler,
                         onDoneSetsChangeHandler)
