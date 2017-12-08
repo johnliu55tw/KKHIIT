@@ -262,9 +262,9 @@ function main () {
   }
 
   var hiitTimer = new HiitTimer(tSpec,
-                        onIntervalChangeHandler,
-                        onCounterChangeHandler,
-                        onDoneSetsChangeHandler)
+                                onIntervalChangeHandler,
+                                onCounterChangeHandler,
+                                onDoneSetsChangeHandler)
 
   function onIntervelTimerEvent () {
     hiitTimer.tick()
@@ -307,9 +307,9 @@ function main () {
       clearInterval(intervalHandler)
     }
     hiitTimer = new HiitTimer(tSpec,
-                      onIntervalChangeHandler,
-                      onCounterChangeHandler,
-                      onDoneSetsChangeHandler)
+                              onIntervalChangeHandler,
+                              onCounterChangeHandler,
+                              onDoneSetsChangeHandler)
     setTimerValue(tSpec.warmupSecs)
     setSetsValue(0, tSpec.totalSets)
     setTimerBackground(255, 255, 0, 1)
@@ -334,9 +334,9 @@ function main () {
       }
       // Verified
       hiitTimer = new HiitTimer(tSpec,
-                        onIntervalChangeHandler,
-                        onCounterChangeHandler,
-                        onDoneSetsChangeHandler)
+                                onIntervalChangeHandler,
+                                onCounterChangeHandler,
+                                onDoneSetsChangeHandler)
       this.style.backgroundColor = 'white'
       setTimerValue(tSpec.warmupSecs)
       setSetsValue(0, tSpec.totalSets)
