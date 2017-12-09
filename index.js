@@ -1,6 +1,7 @@
 /* Constants */
 
 var MAX_SETS = 99
+var MIN_SETS = 1
 var MAX_MINS = 59
 var MAX_SECS = 59
 
@@ -25,10 +26,10 @@ function TimingSpec (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
    *
    */
   try {
-    this.warmupSecs = this.parseTime(warmupSecs)
-    this.highSecs = this.parseTime(highSecs)
-    this.lowSecs = this.parseTime(lowSecs)
-    this.cooldownSecs = this.parseTime(cooldownSecs)
+    this.warmupSecs = TimingSpec.parseTime(warmupSecs)
+    this.highSecs = TimingSpec.parseTime(highSecs)
+    this.lowSecs = TimingSpec.parseTime(lowSecs)
+    this.cooldownSecs = TimingSpec.parseTime(cooldownSecs)
   } catch (e) {
     throw new Error('Unable to create TimingSpec: ' + e.message)
   }
@@ -43,8 +44,8 @@ function TimingSpec (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
     this.totalSets = totalSets
   }
 }
-TimingSpec.prototype.parseTime = function (strOrNumber) {
-  /* UNBOUND METHOD
+TimingSpec.parseTime = function (strOrNumber) {
+  /* STATIC METHOD
    *
    * Parse a string "MM:SS" into seconds. If it's number, check the value and
    * returns it directly.
@@ -183,6 +184,208 @@ function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) 
     }
     if (prevDoneSets !== this.doneSets && this.onDoneSetsChange !== undefined) {
       this.onDoneSetsChange()
+    }
+  }
+}
+
+function HiitViewStateMachine () {
+  /* Internal states */
+  var tSpec = new TimingSpec(15, 20, 40, 300, 20)
+  var hiitTimer = new HiitTimer(tSpec)
+
+  /* Events */
+  this.Event = {
+    StartBtnClicked: 1,
+    SettingBtnClicked: 2,
+    ResetBtnClicked: 3,
+    IntervalTimerTicked: 4,
+    KeyInput: 5,
+    InputValidated: 6,
+    InputInvalidDetected: 7,
+    Auto: 8
+  }
+
+  /* Display elements */
+  function setTimerValue (secs) {
+    /* Set the main countdown timer value */
+    var timerValue = document.getElementById('timer-value')
+    if (secs === null) {
+      timerValue.textContent = '--:--'
+    } else {
+      var minPart = Math.floor(secs / 60)
+      var secPart = secs % 60
+      timerValue.textContent = zfill(minPart) + ':' + zfill(secPart)
+    }
+  }
+
+  function setSetsValue (remain, total) {
+    var setsValue = document.getElementById('sets-value')
+    /* Set the 'finished/total' sets value */
+    if (remain === null) {
+      setsValue.textContent = '--/--'
+    } else {
+      setsValue.textContent = zfill(remain) + '/' + zfill(total)
+    }
+  }
+
+  function setTimerBackground (intervalState) {
+    /* Sets the background of the timer block by the HIIT interval */
+    var style = document.querySelector('.timer-status').style
+    switch (hiitTimer.currentState) {
+      case hiitTimer.IntervalState.WARMUP:
+        style.backgroundColor = 'yellow'
+        break
+      case hiitTimer.IntervalState.HIGH:
+        style.backgroundColor = 'red'
+        break
+      case hiitTimer.IntervalState.LOW:
+        style.backgroundColor = 'green'
+        break
+      case hiitTimer.IntervalState.COOLDOWN:
+        style.backgroundColor = 'blue'
+        break
+      case hiitTimer.IntervalState.DONE:
+        style.backgroundColor = 'yellow'
+        break
+    }
+  }
+
+  /* Buttons */
+  var settingBtn = document.getElementById('setting-btn')
+  var startBtn = document.getElementById('start-btn')
+  var resetBtn = document.getElementById('reset-btn')
+
+  /* Input container */
+  var inputContainer = document.querySelector('div.setting')
+
+  /* Input fields */
+  var inputFields = {
+    warmup: document.querySelector('.setting input.warmup'),
+    high: document.querySelector('.setting input.high'),
+    low: document.querySelector('.setting input.low'),
+    cooldown: document.querySelector('.setting input.cooldown'),
+    sets: document.querySelector('.setting input.sets')
+  }
+
+  /* States */
+  this.stateInitialized = function () {
+    hiitTimer = new HiitTimer(tSpec)
+    setTimerValue(hiitTimer.counter)
+    setSetsValue(hiitTimer.doneSets, tSpec.totalSets)
+    setTimerBackground(255, 255, 0, 1)
+    startBtn.textContent = 'Start'
+    startBtn.disabled = false
+    resetBtn.textContent = 'Reset'
+    resetBtn.disabled = true
+    settingBtn.textContent = 'Setting'
+    settingBtn.disabled = false
+    inputContainer.style.display = 'none'
+  }
+
+  this.stateRunning = function () {
+    setTimerValue(hiitTimer.counter)
+    setSetsValue(hiitTimer.doneSets, tSpec.totalSets)
+    setTimerBackground(hiitTimer.currentState)
+    startBtn.textContent = 'Pause'
+    startBtn.disabled = false
+    resetBtn.textContent = 'Reset'
+    resetBtn.disabled = true
+    settingBtn.textContent = 'Setting'
+    settingBtn.disabled = true
+    inputContainer.style.display = 'none'
+  }
+
+  this.stateUpdateTimer = function () {
+    hiitTimer.tick()
+  }
+
+  this.statePaused = function () {
+    setTimerValue(hiitTimer.counter)
+    setSetsValue(hiitTimer.doneSets, tSpec.totalSets)
+    setTimerBackground(hiitTimer.currentState)
+    startBtn.textContent = 'Start'
+    startBtn.disabled = false
+    resetBtn.textContent = 'Reset'
+    resetBtn.disabled = false
+    settingBtn.textContent = 'Setting'
+    settingBtn.disabled = true
+    inputContainer.style.display = 'none'
+  }
+
+  this.stateConfigurating = function () {
+    setTimerValue(null)
+    setSetsValue(null)
+    setTimerBackground(255, 255, 0, 1)
+    startBtn.textContent = 'Start'
+    startBtn.disabled = true
+    resetBtn.textContent = 'Reset'
+    resetBtn.disabled = true
+    settingBtn.textContent = 'Setting'
+    settingBtn.disabled = false
+    inputContainer.style.display = 'flex'
+  }
+
+  this.stateValidatingInputs = function () {
+    setTimerValue(null)
+    setSetsValue(null)
+    setTimerBackground(255, 255, 0, 1)
+    startBtn.textContent = 'Start'
+    startBtn.disabled = true
+    resetBtn.textContent = 'Reset'
+    resetBtn.disabled = true
+    settingBtn.textContent = 'Setting'
+    settingBtn.disabled = true
+    inputContainer.style.display = 'flex'
+    /* Validating input fields */
+    // XXX This is embarrassing... Repeated try catch block !?
+    // Dude, for real?
+    var allPassed = true
+    try {
+      TimingSpec.parseTime(inputFields.warmup.value)
+      inputFields.warmup.style.background = 'white'
+    } catch (e) {
+      inputFields.warmup.style.background = 'red'
+      allPassed = false
+    }
+
+    try {
+      TimingSpec.parseTime(inputFields.high.value)
+      inputFields.high.style.background = 'white'
+    } catch (e) {
+      inputFields.high.style.background = 'red'
+      allPassed = false
+    }
+
+    try {
+      TimingSpec.parseTime(inputFields.low.value)
+      inputFields.low.style.background = 'white'
+    } catch (e) {
+      inputFields.low.style.background = 'red'
+      allPassed = false
+    }
+
+    try {
+      TimingSpec.parseTime(inputFields.cooldown.value)
+      inputFields.cooldown.style.background = 'white'
+    } catch (e) {
+      inputFields.cooldown.style.background = 'red'
+      allPassed = false
+    }
+
+    var parsed = parseInt(inputFields.sets === null)
+    if (parsed === null || parsed > MAX_SETS || parsed < MIN_SETS) {
+      inputFields.sets.style.background = 'red'
+      allPassed = false
+    } else {
+      inputFields.sets.style.background = 'white'
+    }
+    if (allPassed) {
+      console.log('All inputs are validated. New timing spec. created.')
+      tSpec = new TimingSpec(inputFields.warmup.value,
+                             inputFields.high.value,
+                             inputFields.low.value,
+                             inputFields.cooldown.value,
+                             inputFields.sets.value)
     }
   }
 }
@@ -354,4 +557,4 @@ function main () {
   })
 }
 
-main()
+// main()

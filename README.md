@@ -15,6 +15,7 @@ This is a purely client-side application, just clone it and open 'index.html' to
 * UpdateTimer
 * Paused
 * Configurating
+* ValidatingInput
 * InvalidConfigurations
 
 #### Events
@@ -22,13 +23,18 @@ This is a purely client-side application, just clone it and open 'index.html' to
 * StartBtnClicked
 * SettingBtnClicked
 * ResetBtnClicked
-* InvalidInputDetected
-* ValidInputDetected
 * InvervalTimerTicked
+* KeyInput (On input fields)
+* *Input Validated*
+* *Input Invalid Detected*
+* *Auto (Automatically triggered)*
+
+Note: Events in italic font are triggered by the state machine itself.
 
 ### Views (Display elements)
 
 * Counter
+* CounterBackground
 * SetsIndicator
 * StartBtn
 * ResetBtn
@@ -40,13 +46,16 @@ This is a purely client-side application, just clone it and open 'index.html' to
 * CooldownInput
 * SetsInput
 
-### Views under each state
+### Actions and appearance under each state
 
 #### Initialized
+
+* HiitTimer instance should be reinitialized by the tSpec.
 
 |   | Display | Text/Appearance |
 | - | ------- | ---- |
 | Counter | Show | Timer value |
+| CounterBackground | Show | Yellow |
 | SetsIndicator | Show | Sets value |
 | StartBtn | Enabled | "Start" |
 | ResetBtn | Disabled | "Reset" |
@@ -65,6 +74,7 @@ This is a purely client-side application, just clone it and open 'index.html' to
 |   | Display | Text/Appearance |
 | - | ------- | ---- |
 | Counter | Show | Timer value |
+| CounterBackground | Show | Depends on interval |
 | SetsIndicator | Show | Sets value |
 | StartBtn | Enabled | "Paused" |
 | ResetBtn | Disabled | "Reset" |
@@ -83,6 +93,7 @@ This is a purely client-side application, just clone it and open 'index.html' to
 |   | Display | Text/Appearance |
 | - | ------- | ---- |
 | Counter | Show | Timer value |
+| CounterBackground | Show | Depends on interval |
 | SetsIndicator | Show | Sets value |
 | StartBtn | Enabled | "Start" |
 | ResetBtn | Enabled | "Reset" |
@@ -99,6 +110,7 @@ This is a purely client-side application, just clone it and open 'index.html' to
 |   | Display | Text/Appearance |
 | - | ------- | ---- |
 | Counter | Show | "--:--" |
+| CounterBackground | Show | Yellow |
 | SetsIndicator | Show | "--/--" |
 | StartBtn | Disabled | "Start" |
 | ResetBtn | Disabled | "Reset" |
@@ -110,11 +122,16 @@ This is a purely client-side application, just clone it and open 'index.html' to
 | CooldownInput | Show | - |
 | SetsInput | Show | - |
 
-#### InvalidConfigurations
+#### ValidatingInputs
+
+* Validating all the input fields. If any of the inputs is invalid, change its background to red.
+
+* If all inputs are valid, create new HiitTimer instance.
 
 |   | Display | Text/Appearance |
 | - | ------- | ---- |
 | Counter | Show | "--:--" |
+| CounterBackground | Show | Yellow |
 | SetsIndicator | Show | "--/--" |
 | StartBtn | Disabled | "Start" |
 | ResetBtn | Disabled | "Reset" |
