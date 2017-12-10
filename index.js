@@ -194,7 +194,7 @@ function HiitViewStateMachine () {
   var hiitTimer = new HiitTimer(tSpec)
 
   /* Events */
-  this.Event = {
+  this.Events = {
     StartBtnClicked: 1,
     SettingBtnClicked: 2,
     ResetBtnClicked: 3,
@@ -255,6 +255,19 @@ function HiitViewStateMachine () {
   var startBtn = document.getElementById('start-btn')
   var resetBtn = document.getElementById('reset-btn')
 
+  /* Interval timer handler and functions */
+  var intervalTimerHandler = null
+  function startIntervalTimer () {
+    intervalTimerHandler = setInterval(function () {
+      console.log(this)
+      this.transition(this.Events.IntervalTimerTicked)
+    }, 1000)
+  }
+  function stopIntervalTimer () {
+    clearInterval(intervalTimerHandler)
+    intervalTimerHandler = null
+  }
+
   /* Input container */
   var inputContainer = document.querySelector('div.setting')
 
@@ -293,10 +306,16 @@ function HiitViewStateMachine () {
     settingBtn.textContent = 'Setting'
     settingBtn.disabled = true
     inputContainer.style.display = 'none'
+
+    if (intervalTimerHandler === null) {
+      startIntervalTimer()
+    }
   }
 
   this.stateUpdateTimer = function () {
     hiitTimer.tick()
+    // Triggering Auto event
+    this.transition(this.Events.Auto)
   }
 
   this.statePaused = function () {
@@ -310,6 +329,10 @@ function HiitViewStateMachine () {
     settingBtn.textContent = 'Setting'
     settingBtn.disabled = true
     inputContainer.style.display = 'none'
+
+    if (intervalTimerHandler !== null) {
+      stopIntervalTimer()
+    }
   }
 
   this.stateConfigurating = function () {
@@ -386,9 +409,126 @@ function HiitViewStateMachine () {
                              inputFields.low.value,
                              inputFields.cooldown.value,
                              inputFields.sets.value)
+      this.transition(this.Events.InputValidated)
     }
   }
+
+  /* State initialization */
+  this.currentState = this.stateInitialized
+  this.currentState()
+
+  /* Transition function */
+  this.transition = function (event) {
+    switch (this.currentState) {
+      case this.stateInitialized:
+        switch (event) {
+          case this.Events.StartBtnClicked:
+            this.currentState = this.stateRunning
+            break
+          case this.Events.SettingBtnClicked:
+            this.currentState = this.stateConfiguration
+            break
+          default:
+            console.log('Error: unexpected event ' + event + ' in state Initialized.')
+            throw new Error('Impossible')
+        }
+        break
+      case this.stateRunning:
+        switch (event) {
+          case this.Events.StartBtnClicked:
+            this.currentState = this.statePaused
+            break
+          case this.Events.IntervalTimerTicked:
+            this.currentState = this.stateUpdateTimer
+            break
+          default:
+            console.log('Error: unexpected event ' + event + ' in state Running.')
+            throw new Error('Impossible')
+        }
+        break
+      case this.stateUpdateTimer:
+        switch (event) {
+          case this.Events.Auto:
+            this.currentState = this.stateRunning
+            break
+          default:
+            console.log('Error: unexpected event ' + event + ' in state UpdateTimer.')
+            throw new Error('Impossible')
+        }
+        break
+      case this.statePaused:
+        switch (event) {
+          case this.Events.StartBtnClicked:
+            this.currentState = this.stateRunning
+            break
+          case event === this.Events.ResetBtnClicked:
+            this.currentState = this.stateInitialized
+            break
+          default:
+            console.log('Error: unexpected event ' + event + ' in state Paused.')
+            throw new Error('Impossible')
+        }
+        break
+      case this.stateConfigurating:
+        switch (event) {
+          case this.Events.KeyInput:
+            this.currentState = this.stateValidatingInputs
+            break
+          case this.Events.SettingBtnClicked:
+            this.currentState = this.settingBtnClicked
+            break
+          default:
+            console.log('Error: unexpected event ' + event + ' in state Configurating.')
+            throw new Error('Impossible')
+        }
+        break
+      case this.stateValidatingInputs:
+        switch (event) {
+          case this.Events.InputValidated:
+            this.currentState = this.stateConfigurating
+            break
+          default:
+            console.log('Error: unexpected event ' + event + ' in state ValidatingInputs.')
+            throw new Error('Impossible')
+        }
+        break
+      default:
+        console.log('Error: Unexpected state: ' + this.currentState)
+        throw new Error('Impossible')
+    }
+    this.currentState()
+  }
+  /* Registering */
+  startBtn.onclick = function () {
+    console.log(this)
+    this.transition(this.Events.StartBtnClicked)
+  }
+  settingBtn.onclick = function () {
+    this.transition(this.Events.SettingBtnClicked)
+  }
+  resetBtn.onclick = function () {
+    this.transition(this.Events.ResetBtnClicked)
+  }
 }
+
+/* Main */
+function main2 () {
+  var sm = new HiitViewStateMachine()
+  var settingBtn = document.getElementById('setting-btn')
+  var startBtn = document.getElementById('start-btn')
+  var resetBtn = document.getElementById('reset-btn')
+  /* Registering */
+  startBtn.onclick = function () {
+    sm.transition(sm.Events.StartBtnClicked)
+  }
+  settingBtn.onclick = function () {
+    sm.transition(sm.Events.SettingBtnClicked)
+  }
+  resetBtn.onclick = function () {
+    sm.transition(sm.Events.ResetBtnClicked)
+  }
+}
+main2()
 
 /* Functions for displaying */
 
