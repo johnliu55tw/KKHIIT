@@ -139,9 +139,21 @@ function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) 
   /* Interfaces */
 
   /* State changed handlers */
-  this.onIntervalChange = onIntervalChange
-  this.onCounterChange = onCounterChange
-  this.onDoneSetsChange = onDoneSetsChange
+  if (typeof onIntervalChange === 'function') {
+    this.onIntervalChange = onIntervalChange
+  } else {
+    this.onIntervalChange = null
+  }
+  if (typeof onCounterChange === 'function') {
+    this.onCounterChange = onCounterChange
+  } else {
+    this.onCounterChange = null
+  }
+  if (typeof onDoneSetsChange === 'function') {
+    this.onDoneSetsChange = onDoneSetsChange
+  } else {
+    this.onDoneSetsChange = null
+  }
 
   /* The tick() method will update its internal state, and will notify state
    * change handlers if state changed.
@@ -201,13 +213,13 @@ function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) 
         console.log('Impossible to reach.')
     }
     // Calling assigned handlers if states changed
-    if (prevIntervalState !== this.currentState && this.onIntervalChange !== undefined) {
+    if (prevIntervalState !== this.currentState && this.onIntervalChange !== null) {
       this.onIntervalChange()
     }
-    if (prevCounter !== this.currentState && this.onCounterChange !== undefined) {
+    if (prevCounter !== this.currentState && this.onCounterChange !== null) {
       this.onCounterChange()
     }
-    if (prevDoneSets !== this.doneSets && this.onDoneSetsChange !== undefined) {
+    if (prevDoneSets !== this.doneSets && this.onDoneSetsChange !== null) {
       this.onDoneSetsChange()
     }
   }
@@ -375,8 +387,8 @@ function HiitView () {
 
 function HiitStateMachine () {
   /* The state machine */
-  this.tSpec = new TimingSpec(15, 20, 40, 300, 20)
-  this.hiitTimer = new HiitTimer(this.tSpec)
+  this.tSpec = new TimingSpec(15, 20, 40, 300, 20) // Defaults
+  this.hiitTimer = null
   this.intervalTimerHandler = null
   this.view = new HiitView()
   this.currentState = this.Initialized
@@ -390,7 +402,12 @@ HiitStateMachine.prototype.Initialized = function () {
     window.clearInterval(this.intervalTimerHandler)
     this.intervalTimerHandler = null
   }
-  this.hiitTimer = new HiitTimer(this.tSpec)
+  this.hiitTimer = new HiitTimer(
+    this.tSpec,
+    function () {
+      // Playing beep sound whenever the interval changed.
+      document.getElementById('beep-sound').play()
+    })
   this.view.stateInitialized(this.hiitTimer.counter,
                              this.hiitTimer.doneSets,
                              this.hiitTimer.tSpec.totalSets,
