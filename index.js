@@ -312,10 +312,15 @@ function HiitView () {
     setTimerBackground(intervalState)
     startBtn.textContent = 'Start'
     startBtn.disabled = false
+    startBtn.style.width = '6em'
+    startBtn.style.display = 'block'
     resetBtn.textContent = 'Reset'
     resetBtn.disabled = true
+    resetBtn.style.width = '6em'
+    resetBtn.style.display = 'block'
     settingBtn.textContent = 'Setting'
     settingBtn.disabled = false
+    settingBtn.style.width = '6em'
     inputContainer.style.display = 'none'
   }
 
@@ -351,10 +356,13 @@ function HiitView () {
     setTimerBackground(null)
     startBtn.textContent = 'Start'
     startBtn.disabled = true
+    startBtn.style.display = 'none'
     resetBtn.textContent = 'Reset'
     resetBtn.disabled = true
+    resetBtn.style.display = 'none'
     settingBtn.textContent = 'Apply'
     settingBtn.disabled = false
+    settingBtn.style.width = '100%'
     inputContainer.style.display = 'flex'
     for (var key in inputField) {
       inputField[key].style.background = 'white'
