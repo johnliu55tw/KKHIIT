@@ -63,6 +63,7 @@ body {
 
 .controller > button:disabled {
   border: 2px solid gray;
+  opacity: 0.6;
   background-color: white;
 }
 
