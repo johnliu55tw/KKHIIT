@@ -6,6 +6,7 @@ body {
 
 /* Outer most container */
 .container {
+  overflow: hidden;
   width: 300px;
   margin: auto;
   border: black solid 5px;
