@@ -94,3 +94,16 @@ div.setting div.setting-field > input {
 div.setting div.setting-field > input:disabled {
   color: #CCCCCC;
 }
+
+div.kkbox {
+  overflow: visible;
+  border: 0;
+  margin: 0;
+  height: 420px;
+}
+
+#kkbox-widget{
+  border: 0;
+  margin: 0;
+  height: 420px;
+}
