@@ -18,7 +18,7 @@ function zfill (val) {
 
 /* Objects */
 
-function TimingSpec (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
+function HiitTimerSetting (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
   /* Constructor
    *
    * For *Secs arguments, they take either a string representation of "MM:SS",
@@ -35,32 +35,32 @@ function TimingSpec (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
   }
 
   try {
-    TimingSpec.parseTime(warmupSecs)
-    this.warmupSecs = TimingSpec.parseTime(warmupSecs)
+    HiitTimerSetting.parseTime(warmupSecs)
+    this.warmupSecs = HiitTimerSetting.parseTime(warmupSecs)
   } catch (e) {
     verifyResult.warmup = false
     allPassed = false
   }
 
   try {
-    TimingSpec.parseTime(highSecs)
-    this.highSecs = TimingSpec.parseTime(highSecs)
+    HiitTimerSetting.parseTime(highSecs)
+    this.highSecs = HiitTimerSetting.parseTime(highSecs)
   } catch (e) {
     verifyResult.high = false
     allPassed = false
   }
 
   try {
-    TimingSpec.parseTime(lowSecs)
-    this.lowSecs = TimingSpec.parseTime(lowSecs)
+    HiitTimerSetting.parseTime(lowSecs)
+    this.lowSecs = HiitTimerSetting.parseTime(lowSecs)
   } catch (e) {
     verifyResult.low = false
     allPassed = false
   }
 
   try {
-    TimingSpec.parseTime(cooldownSecs)
-    this.cooldownSecs = TimingSpec.parseTime(cooldownSecs)
+    HiitTimerSetting.parseTime(cooldownSecs)
+    this.cooldownSecs = HiitTimerSetting.parseTime(cooldownSecs)
   } catch (e) {
     verifyResult.cooldown = false
     allPassed = false
@@ -78,7 +78,7 @@ function TimingSpec (warmupSecs, highSecs, lowSecs, cooldownSecs, totalSets) {
     throw verifyResult
   }
 }
-TimingSpec.parseTime = function (strOrNumber) {
+HiitTimerSetting.parseTime = function (strOrNumber) {
   /* STATIC METHOD
    *
    * Parse a string "MM:SS" into seconds. If it's number, check the value and
@@ -120,23 +120,20 @@ TimingSpec.parseTime = function (strOrNumber) {
   }
 }
 
-function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) {
+function HiitTimer (hiitSetting, onIntervalChange, onCounterChange, onDoneSetsChange) {
   /* Constructor
    *
-   * Takes a TimingSpec and three callback functions for state changes as arguments.
+   * Takes a HiitTimerSetting and three callback functions for state changes as arguments.
    *
    */
-
-  this.tSpec = Object.assign({}, tSpec)
-
   /* Setting up initial state */
+  this.hiitSetting = Object.assign({}, hiitSetting)
   this.currentState = HiitTimer.IntervalState.WARMUP
-  this.counter = this.tSpec.warmupSecs
+  // The countdown counter in seconds.
+  this.counter = this.hiitSetting.warmupSecs
   // Counter for counting sets
   // Whenever a high interval is finished, it will be increased by 1
   this.doneSets = 0
-
-  /* Interfaces */
 
   /* State changed handlers */
   if (typeof onIntervalChange === 'function') {
@@ -168,7 +165,7 @@ function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) 
     switch (this.currentState) {
       case HiitTimer.IntervalState.WARMUP:
         if (this.counter <= 0) {
-          this.counter = this.tSpec.highSecs
+          this.counter = this.hiitSetting.highSecs
           this.currentState = HiitTimer.IntervalState.HIGH
         }
         break
@@ -176,24 +173,24 @@ function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) 
       case HiitTimer.IntervalState.HIGH:
         if (this.counter <= 0) {
           this.doneSets += 1
-          this.counter = this.tSpec.lowSecs
+          this.counter = this.hiitSetting.lowSecs
           this.currentState = HiitTimer.IntervalState.LOW
         }
         break
 
       case HiitTimer.IntervalState.LOW:
         if (this.counter <= 0) {
-          if (this.doneSets === this.tSpec.totalSets) {
+          if (this.doneSets === this.hiitSetting.totalSets) {
             // All sets are done! Congradulations!
-            this.counter = this.tSpec.cooldownSecs
-            if (this.tSpec.cooldownSecs <= 0) {
+            this.counter = this.hiitSetting.cooldownSecs
+            if (this.hiitSetting.cooldownSecs <= 0) {
               this.currentState = HiitTimer.IntervalState.DONE
             } else {
               this.currentState = HiitTimer.IntervalState.COOLDOWN
             }
           } else {
             // ISYMFS!!
-            this.counter = this.tSpec.highSecs
+            this.counter = this.hiitSetting.highSecs
             this.currentState = HiitTimer.IntervalState.HIGH
           }
         }
@@ -212,7 +209,7 @@ function HiitTimer (tSpec, onIntervalChange, onCounterChange, onDoneSetsChange) 
       default:
         console.log('Impossible to reach.')
     }
-    // Calling assigned handlers if states changed
+    // Calling handlers if states changed
     if (prevIntervalState !== this.currentState && this.onIntervalChange !== null) {
       this.onIntervalChange()
     }
@@ -387,7 +384,7 @@ function HiitView () {
 
 function HiitStateMachine () {
   /* The state machine */
-  this.tSpec = new TimingSpec(15, 20, 40, 300, 20) // Defaults
+  this.hiitSetting = new HiitTimerSetting(15, 20, 40, 300, 20) // Defaults
   this.hiitTimer = null
   this.intervalTimerHandler = null
   this.view = new HiitView()
@@ -403,14 +400,14 @@ HiitStateMachine.prototype.Initialized = function () {
     this.intervalTimerHandler = null
   }
   this.hiitTimer = new HiitTimer(
-    this.tSpec,
+    this.hiitSetting,
     function () {
       // Playing beep sound whenever the interval changed.
       document.getElementById('beep-sound').play()
     })
   this.view.stateInitialized(this.hiitTimer.counter,
                              this.hiitTimer.doneSets,
-                             this.hiitTimer.tSpec.totalSets,
+                             this.hiitTimer.hiitSetting.totalSets,
                              this.hiitTimer.currentState)
 }
 HiitStateMachine.prototype.StartIntervalTimer = function () {
@@ -430,7 +427,7 @@ HiitStateMachine.prototype.StopIntervalTimer = function () {
 HiitStateMachine.prototype.Running = function () {
   this.view.stateRunning(this.hiitTimer.counter,
                          this.hiitTimer.doneSets,
-                         this.hiitTimer.tSpec.totalSets,
+                         this.hiitTimer.hiitSetting.totalSets,
                          this.hiitTimer.currentState)
 }
 HiitStateMachine.prototype.UpdateHiitTimer = function () {
@@ -444,7 +441,7 @@ HiitStateMachine.prototype.UpdateHiitTimer = function () {
 HiitStateMachine.prototype.Paused = function () {
   this.view.statePaused(this.hiitTimer.counter,
                         this.hiitTimer.doneSets,
-                        this.hiitTimer.tSpec.totalSets,
+                        this.hiitTimer.hiitSetting.totalSets,
                         this.hiitTimer.currentState)
 }
 HiitStateMachine.prototype.Configurating = function () {
@@ -455,7 +452,7 @@ HiitStateMachine.prototype.ValidatingInputs = function () {
   console.debug('Entering state: ValidatingInputs')
   try {
     // Verify all the input field if any input field has inputs
-    this.tSpec = new TimingSpec(document.querySelector('input.warmup').value,
+    this.hiitSetting = new HiitTimerSetting(document.querySelector('input.warmup').value,
                                 document.querySelector('input.high').value,
                                 document.querySelector('input.low').value,
                                 document.querySelector('input.cooldown').value,
