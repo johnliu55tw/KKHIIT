@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <title>HIIT Timer</title>
   <link rel="stylesheet" href="./style.css">
+  <script src="./index.js"></script>
 </head>
 
 <body>
@@ -47,11 +48,13 @@
       </div>
     </div>
     <div class="kkbox">
+      <button id="open-playlist">Play all</button>
+      <button id="next-playlist">&gt;</button>
+      <button id="prev-playlist">&lt;</button>
       <iframe id="kkbox-widget" src="https://widget.kkbox.com/v1/?id=Sst6PZ-j-Mm6fKSZPB&type=album"></iframe>
     </div>
   </div>
   <audio preload="auto" id="beep-sound">
     <source src="five-beeps.wav" type="audio/wav">
   </audio>
-  <script src="./index.js"></script>
 </body>

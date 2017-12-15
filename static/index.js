@@ -572,4 +572,4 @@ function main () {
   })
 }
 
-main()
+document.addEventListener('DOMContentLoaded', function () { main() })
