@@ -134,6 +134,8 @@ div.kkbox > button:hover:disabled {
 }
 
 button.playlist.open {
+  border: 0;
+  background-color: rgba(255, 255, 255, 0.1);
   width: 120px;
   height: 22px;
   left: 90px;
