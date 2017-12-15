@@ -18,6 +18,14 @@ function zfill (val) {
 }
 
 function searchWorkoutPlaylist (token, offset) {
+  /* Search for playlists using keyword 'workout'
+   *
+   * Return:
+   *   Response Promise
+   * Throws:
+   *   Request failed.
+   */
+  console.debug("Searching 'workout' playlist with offset " + offset)
   return axios.get('https://api.kkbox.com/v1.1/search',
     {
       headers: {
@@ -33,12 +41,8 @@ function searchWorkoutPlaylist (token, offset) {
     })
     .then(function (resp) {
       var playlistId = resp.data.playlists.data[0].id
-      console.log(playlistId)
+      console.debug('Found playlist ID: ' + playlistId)
       return playlistId
-    })
-    .catch(function (error) {
-      console.error('Error on searching playlist: ' + error)
-      throw new Error(error)
     })
 }
 
@@ -586,6 +590,42 @@ HiitStateMachine.prototype.settingsValidated = function () {
   this.currentState()
 }
 
+function PlaylistView () {
+  this.nextBtn = document.querySelector('button.playlist.next')
+  this.prevBtn = document.querySelector('button.playlist.prev')
+  this.openBtn = document.querySelector('button.playlist.open')
+  this.widget = document.getElementById('kkbox-widget')
+}
+PlaylistView.prototype.initializing = function () {
+  this.nextBtn.disabled = true
+  this.prevBtn.disabled = true
+  this.openBtn.disabled = true
+  this.widget.src = ''
+}
+PlaylistView.prototype.show = function (playlistId, playlistNumber) {
+  this.widget.src = 'https://widget.kkbox.com/v1/?' +
+                    'id=' + playlistId + '&' +
+                    'type=playlist' + '&' +
+                    'lang=en'
+  if (playlistNumber >= 1) {
+    this.prevBtn.disabled = false
+  } else {
+    this.prevBtn.disabled = true
+  }
+  this.nextBtn.disabled = false
+  this.openBtn.disabled = false
+}
+PlaylistView.prototype.next = function () {
+  this.nextBtn.disabled = true
+  this.prevBtn.disabled = true
+  this.openBtn.disabled = true
+}
+PlaylistView.prototype.prev = function () {
+  this.nextBtn.disabled = true
+  this.prevBtn.disabled = true
+  this.openBtn.disabled = true
+}
+
 function main () {
   var sm = new HiitStateMachine()
 
@@ -597,19 +637,17 @@ function main () {
     input.onblur = function () { sm.settingsUpdated() }
   })
 
-  /* Playlist */
+  // Playlist
+  var playlistView = new PlaylistView()
   var nextBtn = document.querySelector('button.playlist.next')
   var prevBtn = document.querySelector('button.playlist.prev')
   var openBtn = document.querySelector('button.playlist.open')
-  var widget = document.getElementById('kkbox-widget')
   var accessToken = null
-  var playlistNumber = 0
+  var currPlaylistNumber = 0
   var currPlaylistId = null
 
-  nextBtn.disabled = true
-  prevBtn.disabled = true
-  openBtn.disabled = true
-
+  // Initializing
+  playlistView.initializing()
   axios.get('/token')
     .then(function (resp) {
       // Get token
@@ -623,15 +661,8 @@ function main () {
       // Setting up the widget
       searchWorkoutPlaylist(token, 0)
       .then(function (playlistId) {
-        console.log(playlistId)
         currPlaylistId = playlistId
-        widget.src = 'https://widget.kkbox.com/v1/?' +
-                     'id=' + playlistId + '&' +
-                     'type=playlist' + '&' +
-                     'lang=en'
-      })
-      .catch(function (error) {
-        console.log(error)
+        playlistView.show(currPlaylistId, currPlaylistNumber)
       })
     })
     .catch(function (error) {
@@ -639,49 +670,31 @@ function main () {
     })
 
   nextBtn.onclick = function () {
-    nextBtn.disabled = true
-    playlistNumber += 1
-    searchWorkoutPlaylist(accessToken, playlistNumber)
+    playlistView.next()
+    currPlaylistNumber += 1
+    searchWorkoutPlaylist(accessToken, currPlaylistNumber)
     .then(function (playlistId) {
-      console.debug('Playlist ID: ' + playlistId)
+      console.debug('Fetched playlist ID: ' + playlistId)
       currPlaylistId = playlistId
-      nextBtn.disabled = false
-      widget.src = 'https://widget.kkbox.com/v1/?' +
-                   'id=' + playlistId + '&' +
-                   'type=playlist' + '&' +
-                   'lang=en'
+      playlistView.show(currPlaylistId, currPlaylistNumber)
     })
     .catch(function (error) {
       console.error('Error on searching playlist: ' + error)
-      nextBtn.disabled = false
     })
-
-    if (playlistNumber >= 1) {
-      prevBtn.disabled = false
-    }
   }
 
   prevBtn.onclick = function () {
-    prevBtn.disabled = true
-    playlistNumber -= 1
-    searchWorkoutPlaylist(accessToken, playlistNumber)
+    playlistView.next()
+    currPlaylistNumber -= 1
+    searchWorkoutPlaylist(accessToken, currPlaylistNumber)
     .then(function (playlistId) {
-      console.debug('Playlist ID: ' + playlistId)
+      console.debug('Fetched playlist ID: ' + playlistId)
       currPlaylistId = playlistId
-      prevBtn.disabled = false
-      widget.src = 'https://widget.kkbox.com/v1/?' +
-                   'id=' + playlistId + '&' +
-                   'type=playlist' + '&' +
-                   'lang=en'
+      playlistView.show(currPlaylistId, currPlaylistNumber)
     })
     .catch(function (error) {
       console.error('Error on searching playlist: ' + error)
-      prevBtn.disabled = false
     })
-
-    if (playlistNumber === 0) {
-      prevBtn.disabled = true
-    }
   }
 
   openBtn.onclick = function () {
