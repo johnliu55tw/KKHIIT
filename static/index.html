@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <title>HIIT Timer</title>
   <link rel="stylesheet" href="./style.css">
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="./index.js"></script>
 </head>
 
@@ -48,10 +49,10 @@
       </div>
     </div>
     <div class="kkbox">
-      <button id="open-playlist">Play all</button>
-      <button id="next-playlist">&gt;</button>
-      <button id="prev-playlist">&lt;</button>
-      <iframe id="kkbox-widget" src="https://widget.kkbox.com/v1/?id=Sst6PZ-j-Mm6fKSZPB&type=album"></iframe>
+      <button class="playlist open">Play the playlist</button>
+      <button class="playlist next">&gt;</button>
+      <button class="playlist prev">&lt;</button>
+      <iframe id="kkbox-widget"></iframe>
     </div>
   </div>
   <audio preload="auto" id="beep-sound">

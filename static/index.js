@@ -1,5 +1,6 @@
 /* Constants */
 
+const axios = window.axios // Prevent linter from complaning about 'axios'
 var MAX_SETS = 99
 var MIN_SETS = 1
 var MAX_MINS = 59
@@ -14,6 +15,31 @@ function zfill (val) {
   } else {
     return '0' + val.toString()
   }
+}
+
+function searchWorkoutPlaylist (token, offset) {
+  return axios.get('https://api.kkbox.com/v1.1/search',
+    {
+      headers: {
+        Authorization: 'Bearer ' + token
+      },
+      params: {
+        limit: 1,
+        offset: offset,
+        q: 'workout',
+        territory: 'TW',
+        type: 'playlist'
+      }
+    })
+    .then(function (resp) {
+      var playlistId = resp.data.playlists.data[0].id
+      console.log(playlistId)
+      return playlistId
+    })
+    .catch(function (error) {
+      console.error('Error on searching playlist: ' + error)
+      throw new Error(error)
+    })
 }
 
 /* Objects */
@@ -570,6 +596,97 @@ function main () {
     input.oninput = function () { sm.settingsUpdated() }
     input.onblur = function () { sm.settingsUpdated() }
   })
+
+  /* Playlist */
+  var nextBtn = document.querySelector('button.playlist.next')
+  var prevBtn = document.querySelector('button.playlist.prev')
+  var openBtn = document.querySelector('button.playlist.open')
+  var widget = document.getElementById('kkbox-widget')
+  var accessToken = null
+  var playlistNumber = 0
+  var currPlaylistId = null
+
+  nextBtn.disabled = true
+  prevBtn.disabled = true
+  openBtn.disabled = true
+
+  axios.get('/token')
+    .then(function (resp) {
+      // Get token
+      console.debug('Access token: ' + resp.data.access_token)
+      nextBtn.disabled = false
+      openBtn.disabled = false
+      accessToken = resp.data.access_token // Global token
+      return accessToken
+    })
+    .then(function (token) {
+      // Setting up the widget
+      searchWorkoutPlaylist(token, 0)
+      .then(function (playlistId) {
+        console.log(playlistId)
+        currPlaylistId = playlistId
+        widget.src = 'https://widget.kkbox.com/v1/?' +
+                     'id=' + playlistId + '&' +
+                     'type=playlist' + '&' +
+                     'lang=en'
+      })
+      .catch(function (error) {
+        console.log(error)
+      })
+    })
+    .catch(function (error) {
+      console.error('Error on fetching token: ' + error)
+    })
+
+  nextBtn.onclick = function () {
+    nextBtn.disabled = true
+    playlistNumber += 1
+    searchWorkoutPlaylist(accessToken, playlistNumber)
+    .then(function (playlistId) {
+      console.debug('Playlist ID: ' + playlistId)
+      currPlaylistId = playlistId
+      nextBtn.disabled = false
+      widget.src = 'https://widget.kkbox.com/v1/?' +
+                   'id=' + playlistId + '&' +
+                   'type=playlist' + '&' +
+                   'lang=en'
+    })
+    .catch(function (error) {
+      console.error('Error on searching playlist: ' + error)
+      nextBtn.disabled = false
+    })
+
+    if (playlistNumber >= 1) {
+      prevBtn.disabled = false
+    }
+  }
+
+  prevBtn.onclick = function () {
+    prevBtn.disabled = true
+    playlistNumber -= 1
+    searchWorkoutPlaylist(accessToken, playlistNumber)
+    .then(function (playlistId) {
+      console.debug('Playlist ID: ' + playlistId)
+      currPlaylistId = playlistId
+      prevBtn.disabled = false
+      widget.src = 'https://widget.kkbox.com/v1/?' +
+                   'id=' + playlistId + '&' +
+                   'type=playlist' + '&' +
+                   'lang=en'
+    })
+    .catch(function (error) {
+      console.error('Error on searching playlist: ' + error)
+      prevBtn.disabled = false
+    })
+
+    if (playlistNumber === 0) {
+      prevBtn.disabled = true
+    }
+  }
+
+  openBtn.onclick = function () {
+    window.open('kkbox://view_and_play_playlist_' + currPlaylistId, '_self')
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function () { main() })
