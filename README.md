@@ -18,7 +18,45 @@ which means one must be emotionally ready for the coming up torture.
 Thus, for the training project, I wish to design a HIIT timer with KKBOX music service integrated.
 
 ## Requirements
-
 * Python >= 3.5
 * [pipenv](https://github.com/pypa/pipenv) >= 9.0.0
 * Modern browser
+
+### Python runtime dependencies
+* Flask
+* Requests
+
+## Getting started
+
+This project adopted the [Pipenv](https://docs.pipenv.org/) Python development workflow.
+To start it, please make sure you have fulfilled all the software requirements listed in [Requirements](#requirements),
+and follow these steps:
+
+First, install Python dependencies for this project using `pipenv`:
+
+```shell
+$ cd kkbox-hiit-timer/
+$ pipenv install --dev
+Installing dependencies from Pipfile.lock (f268d8)…
+...
+```
+
+Now all Python denpencies should all be installed. Start the web server by:
+```shell
+$ pipenv run python3 app.py <CLIENT_ID> <CLIENT_SECRET>
+```
+
+where the `<CLIENT_ID>` and `<CLIENT_SECRET>` should be replaced by the *ID* and *Secret* of your application that you created on [KKBOX developer site](https://developer.kkbox.com/).
+
+For example, if your *ID* and *Secret* are `d209c6a1e4b9271edbfbb18dbe7eb4cf` and `4beb6b50a344f63092b995b6ca18300a` respectively, the command will be:
+```shell
+$ pipenv run python3 app.py d209c6a1e4b9271edbfbb18dbe7eb4cf 4beb6b50a344f63092b995b6ca18300a
+ * Running on http://127.0.0.1:8888/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 277-151-303
+...
+```
+
+When you see the ` * Running on http://127.0.0.1:8888/ (Press CTRL+C to quit)` line, it means that the web server is up and running.
+You can connect the Timer by entering this address: [http://127.0.0.1:8888](http://127.0.0.1:8888).
