@@ -650,53 +650,60 @@ function main () {
   playlistView.initializing()
   axios.get('/token')
     .then(function (resp) {
-      // Get token
-      console.debug('Access token: ' + resp.data.access_token)
+      if ('error' in resp.data) {
+        // Response object contains key 'error' means error occurred.
+        throw new Error(resp.data.error)
+      }
+      console.debug('Retrieved access token: ' + resp.data.access_token)
       nextBtn.disabled = false
       openBtn.disabled = false
       accessToken = resp.data.access_token // Global token
       return accessToken
     })
+    .catch(function (error) {
+      console.error('Failed to requesting for access token: ' + error)
+      throw new Error('Failed to request for access token')
+    })
     .then(function (token) {
-      // Setting up the widget
-      searchWorkoutPlaylist(token, 0)
-      .then(function (playlistId) {
-        currPlaylistId = playlistId
-        playlistView.show(currPlaylistId, currPlaylistNumber)
-      })
+      // Use the token to search for playlists.
+      // Function searchWorkoutPlaylist returns a Promise,
+      // so it can be returned here.
+      return searchWorkoutPlaylist(token, 0)
+    })
+    .then(function (playlistId) {
+      currPlaylistId = playlistId
+      playlistView.show(currPlaylistId, currPlaylistNumber)
     })
     .catch(function (error) {
-      console.error('Error on fetching token: ' + error)
+      console.error('Failed to initialize the playlist view: ' + error)
     })
-
+  // Fetching the next playlist
   nextBtn.onclick = function () {
     playlistView.next()
     currPlaylistNumber += 1
     searchWorkoutPlaylist(accessToken, currPlaylistNumber)
     .then(function (playlistId) {
-      console.debug('Fetched playlist ID: ' + playlistId)
       currPlaylistId = playlistId
       playlistView.show(currPlaylistId, currPlaylistNumber)
     })
     .catch(function (error) {
-      console.error('Error on searching playlist: ' + error)
+      console.error('Failed to update the playlist: ' + error)
     })
   }
-
+  // Fetching the previous playlist
   prevBtn.onclick = function () {
     playlistView.next()
     currPlaylistNumber -= 1
     searchWorkoutPlaylist(accessToken, currPlaylistNumber)
     .then(function (playlistId) {
-      console.debug('Fetched playlist ID: ' + playlistId)
       currPlaylistId = playlistId
       playlistView.show(currPlaylistId, currPlaylistNumber)
     })
     .catch(function (error) {
-      console.error('Error on searching playlist: ' + error)
+      console.error('Failed to update the playlist: ' + error)
     })
   }
-
+  // Open the playlist using kkbox:// protocol
   openBtn.onclick = function () {
     window.open('kkbox://view_and_play_playlist_' + currPlaylistId, '_self')
   }
