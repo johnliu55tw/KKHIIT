@@ -7,8 +7,7 @@ name = "pypi"
 
 [packages]
 
-flask = "*"
-kkbox-developer-sdk = "*"
+Flask = "*"
 requests = "*"
 
 

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1b7ba6ee73f2258e70bd335a12ae7195fa88f39ebf4d6db3956d6d929abf5e89"
+            "sha256": "49b0dffa4077d6a3ea1fba86aa194d148ec1c992becc568c5ccd358840f268d8"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -76,12 +76,6 @@
                 "sha256:f84be1bb0040caca4cea721fcbbbbd61f9be9464ca236387158b0feea01914a4"
             ],
             "version": "==2.10"
-        },
-        "kkbox-developer-sdk": {
-            "hashes": [
-                "sha256:450379ebffc6b13d0217a7cc1629d906baba153be0925155aa1b6632788b7dee"
-            ],
-            "version": "==1.0.1"
         },
         "markupsafe": {
             "hashes": [
