@@ -1,0 +1,26 @@
+{
+  "name": "HIIT-Timer",
+  "version": "1.0.0",
+  "description": "## Introduction",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify ./js/main.js > ./static/bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.kkinternal.com:OPC/kkbox-hiit-timer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^14.5.0"
+  },
+  "dependencies": {
+    "axios": "^0.17.1"
+  }
+}
