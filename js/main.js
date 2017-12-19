@@ -16,7 +16,11 @@ function main () {
   var psm = new PlaylistStateMachine()
   document.querySelector('button.playlist.next').onclick = () => psm.next()
   document.querySelector('button.playlist.prev').onclick = () => psm.prev()
-  document.querySelector('button.playlist.open').onclick = () => psm.open()
+
+  // Open playlist in KKBOX app
+  document.querySelector('button.playlist.open').onclick = () => {
+    window.open('kkbox://view_and_play_playlist_' + psm.playlistId, '_self')
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function () { main() })
