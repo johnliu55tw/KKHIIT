@@ -6,6 +6,9 @@ module.exports.searchWorkoutPlaylist = searchWorkoutPlaylist
 
 function zfill (val) {
   /* Padding one zero on the left to reach length 2. */
+  if (typeof val !== 'number') {
+    return NaN
+  }
   if (Math.floor(val / 10) >= 1) {
     return val.toString()
   } else {
@@ -21,7 +24,7 @@ function searchWorkoutPlaylist (token, offset) {
    * Throws:
    *   Request failed.
    */
-  console.debug("Searching 'workout' playlist with offset " + offset)
+  // console.debug("Searching 'workout' playlist with offset " + offset)
   return axios.get('https://api.kkbox.com/v1.1/search',
     {
       headers: {
@@ -37,7 +40,7 @@ function searchWorkoutPlaylist (token, offset) {
     })
     .then(function (resp) {
       var playlistId = resp.data.playlists.data[0].id
-      console.debug('Found playlist ID: ' + playlistId)
+      // console.debug('Found playlist ID: ' + playlistId)
       return playlistId
     })
 }
