@@ -1,8 +1,9 @@
 var axios = require('axios')
 var StateMachine = require('javascript-state-machine')
-var searchWorkoutPlaylist = require('./utils.js').searchWorkoutPlaylist
+var searchWorkoutPlaylist = require('../utils.js').searchWorkoutPlaylist
+var playlistView = require('./view.js')
 
-module.exports.PlaylistStateMachine = StateMachine.factory(PlaylistView, {
+module.exports.PlaylistStateMachine = StateMachine.factory({
 
   init: 'initializing',
 
@@ -16,13 +17,14 @@ module.exports.PlaylistStateMachine = StateMachine.factory(PlaylistView, {
   data: {
     accessToken: null,
     playlistId: null,
-    playlistNum: 0
+    playlistNum: 0,
+    view: playlistView
   },
 
   methods: {
     onEnterInitializing: function () {
       console.log('Enter Initializing')
-      this.initializingView()
+      this.view.initializing()
       return axios.get('/token')
         .then((resp) => {
           if ('error' in resp.data) {
@@ -54,10 +56,10 @@ module.exports.PlaylistStateMachine = StateMachine.factory(PlaylistView, {
     },
     onEnterShow: function () {
       console.log('Enter Show')
-      this.showView(this.playlistId, this.playlistNum)
+      this.view.show(this.playlistId, this.playlistNum)
     },
     onEnterFetchNextPlaylist: function () {
-      this.nextView()
+      this.view.next()
       this.playlistNum += 1
       return searchWorkoutPlaylist(this.accessToken, this.playlistNum)
         .then((playlistId) => {
@@ -69,7 +71,7 @@ module.exports.PlaylistStateMachine = StateMachine.factory(PlaylistView, {
         })
     },
     onEnterFetchPrevPlaylist: function () {
-      this.prevView()
+      this.view.prev()
       this.playlistNum -= 1
       return searchWorkoutPlaylist(this.accessToken, this.playlistNum)
         .then((playlistId) => {
@@ -82,40 +84,3 @@ module.exports.PlaylistStateMachine = StateMachine.factory(PlaylistView, {
     }
   }
 })
-
-function PlaylistView () {
-  this.nextBtn = document.querySelector('button.playlist.next')
-  this.prevBtn = document.querySelector('button.playlist.prev')
-  this.openBtn = document.querySelector('button.playlist.open')
-  this.widget = document.getElementById('kkbox-widget')
-  this._fsm()
-}
-PlaylistView.prototype.initializingView = function () {
-  this.nextBtn.disabled = true
-  this.prevBtn.disabled = true
-  this.openBtn.disabled = true
-  this.widget.src = ''
-}
-PlaylistView.prototype.showView = function (playlistId, playlistNumber) {
-  this.widget.src = 'https://widget.kkbox.com/v1/?' +
-                    'id=' + playlistId + '&' +
-                    'type=playlist' + '&' +
-                    'lang=en'
-  if (playlistNumber >= 1) {
-    this.prevBtn.disabled = false
-  } else {
-    this.prevBtn.disabled = true
-  }
-  this.nextBtn.disabled = false
-  this.openBtn.disabled = false
-}
-PlaylistView.prototype.nextView = function () {
-  this.nextBtn.disabled = true
-  this.prevBtn.disabled = true
-  this.openBtn.disabled = true
-}
-PlaylistView.prototype.prevView = function () {
-  this.nextBtn.disabled = true
-  this.prevBtn.disabled = true
-  this.openBtn.disabled = true
-}

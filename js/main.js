@@ -1,5 +1,5 @@
 var HiitStateMachine = require('./hiit_timer.js').HiitStateMachine
-var PlaylistStateMachine = require('./playlist.js').PlaylistStateMachine
+var PlaylistStateMachine = require('./playlist_widget/fsm.js').PlaylistStateMachine
 
 function main () {
   var sm = new HiitStateMachine()
