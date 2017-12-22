@@ -4,6 +4,13 @@ jest.mock('axios')
 
 var zfill = require('../utils.js').zfill
 var searchWorkoutPlaylist = require('../utils.js').searchWorkoutPlaylist
+var fetchAccessToken = require('../utils.js').fetchAccessToken
+
+beforeEach(() => {
+  // Reset mocked axios
+  require.requireMock('axios').mockClear()
+  require.requireMock('axios').get.mockClear()
+})
 
 describe('zfill', () => {
   describe('should correctly transform', () => {
@@ -62,6 +69,27 @@ describe('searchWorkoutPlaylist', () => {
     })
     return searchWorkoutPlaylist('theFakeToken', 123).then(data => {
       expect(data).toBe('aFakePlaylistId')
+    })
+  })
+})
+
+describe('fetchAccessToken', () => {
+  test('should correctly called axios', () => {
+    fetchAccessToken()
+
+    var mockedAxios = require.requireMock('axios')
+    expect(mockedAxios.get.mock.calls[0][0]).toBe('/token')
+  })
+
+  test('will return access token if no error occurred', () => {
+    var mockedAxios = require.requireMock('axios')
+    mockedAxios.__setResponseJson({
+      access_token: 'aFakeAccessToken',
+      expires_in: 2592000,
+      token_type: 'Bearer'
+    })
+    return fetchAccessToken().then(token => {
+      expect(token).toBe('aFakeAccessToken')
     })
   })
 })

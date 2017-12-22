@@ -1,6 +1,6 @@
-var axios = require('axios')
 var StateMachine = require('javascript-state-machine')
 var searchWorkoutPlaylist = require('../utils.js').searchWorkoutPlaylist
+var fetchAccessToken = require('../utils.js').fetchAccessToken
 var playlistView = require('./view.js')
 
 module.exports.PlaylistStateMachine = StateMachine.factory({
@@ -25,21 +25,7 @@ module.exports.PlaylistStateMachine = StateMachine.factory({
     onEnterInitializing: function () {
       console.log('Enter Initializing')
       this.view.initializing()
-      return axios.get('/token')
-        .then((resp) => {
-          if ('error' in resp.data) {
-            // Response object contains key 'error' means error occurred.
-            throw new Error(resp.data.error)
-          } else {
-            console.debug('Retrieved access token: ' + resp.data.access_token)
-            this.accessToken = resp.data.access_token // Global token
-            return this.accessToken
-          }
-        })
-        .catch((error) => {
-          console.error('Failed to requesting for access token: ' + error)
-          throw new Error('Failed to request for access token')
-        })
+      return fetchAccessToken()
         .then((token) => {
           // Use the token to search for playlists.
           // Function searchWorkoutPlaylist returns a Promise,
