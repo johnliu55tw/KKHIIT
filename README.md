@@ -29,6 +29,7 @@ Thus, for the training project, I wish to design a HIIT timer with KKBOX music s
 
 ### JavaScript runtime dependencies
 * axios
+* javascript-state-machine
 
 ## Getting started
 
