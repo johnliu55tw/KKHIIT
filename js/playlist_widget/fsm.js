@@ -30,6 +30,7 @@ module.exports.PlaylistWidget = StateMachine.factory({
           // Use the token to search for playlists.
           // Function searchWorkoutPlaylist returns a Promise,
           // so it can be returned here.
+          this.accessToken = token
           return searchWorkoutPlaylist(token, 0)
         })
         .then((playlistId) => {
