@@ -1,15 +1,16 @@
-var HiitStateMachine = require('./hiit_timer.js').HiitStateMachine
+// var HiitStateMachine = require('./hiit_timer.js').HiitStateMachine
+var HiitTimerWidget = require('./hiit_timer_widget/fsm.js').HiitTimerWidget
 var PlaylistStateMachine = require('./playlist_widget/fsm.js').PlaylistStateMachine
 
 function main () {
-  var sm = new HiitStateMachine()
+  var sm = new HiitTimerWidget()
 
-  document.getElementById('start-btn').onclick = function () { sm.startBtnClicked() }
-  document.getElementById('setting-btn').onclick = function () { sm.settingBtnClicked() }
-  document.getElementById('reset-btn').onclick = function () { sm.resetBtnClicked() }
-  document.querySelectorAll('.setting input').forEach(function (input) {
-    input.oninput = function () { sm.settingsUpdated() }
-    input.onblur = function () { sm.settingsUpdated() }
+  document.getElementById('start-btn').onclick = () => sm.startBtnClicked()
+  document.getElementById('setting-btn').onclick = () => sm.settingBtnClicked()
+  document.getElementById('reset-btn').onclick = () => sm.resetBtnClicked()
+  document.querySelectorAll('.setting input').forEach((input) => {
+    input.oninput = () => sm.settingsUpdated()
+    input.onblur = () => sm.settingsUpdated()
   })
 
   // Playlist
