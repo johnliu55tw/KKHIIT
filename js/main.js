@@ -1,6 +1,6 @@
 // var HiitStateMachine = require('./hiit_timer.js').HiitStateMachine
 var HiitTimerWidget = require('./hiit_timer_widget/fsm.js').HiitTimerWidget
-var PlaylistStateMachine = require('./playlist_widget/fsm.js').PlaylistStateMachine
+var PlaylistWidget = require('./playlist_widget/fsm.js').PlaylistWidget
 
 function main () {
   var sm = new HiitTimerWidget()
@@ -14,7 +14,7 @@ function main () {
   })
 
   // Playlist
-  var psm = new PlaylistStateMachine()
+  var psm = new PlaylistWidget()
   document.querySelector('button.playlist.next').onclick = () => psm.next()
   document.querySelector('button.playlist.prev').onclick = () => psm.prev()
 

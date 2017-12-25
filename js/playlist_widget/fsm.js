@@ -3,7 +3,7 @@ var searchWorkoutPlaylist = require('../utils.js').searchWorkoutPlaylist
 var fetchAccessToken = require('../utils.js').fetchAccessToken
 var playlistView = require('./view.js')
 
-module.exports.PlaylistStateMachine = StateMachine.factory({
+module.exports.PlaylistWidget = StateMachine.factory({
 
   init: 'initializing',
 
