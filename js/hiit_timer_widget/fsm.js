@@ -3,7 +3,7 @@ var HiitTimer = require('./hiit_timer.js').HiitTimer
 var HiitView = require('./view.js')
 var StateMachine = require('javascript-state-machine')
 
-var HiitTimerWidget = StateMachine.factory({
+module.exports.HiitTimerWidget = StateMachine.factory({
   // Allowing transitions from and to the same state.
   // See https://github.com/jakesgordon/javascript-state-machine/issues/77
   observeUnchangedState: true,
@@ -124,5 +124,3 @@ var HiitTimerWidget = StateMachine.factory({
     }
   }
 })
-
-module.exports.HiitTimerWidget = HiitTimerWidget
