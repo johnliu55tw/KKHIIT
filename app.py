@@ -8,8 +8,18 @@ import sys
 import os
 
 app = Flask(__name__)
-app.config['client_id'] = os.environ.get('KKBOX_CLIENT_ID')
-app.config['client_secret'] = os.environ.get('KKBOX_CLIENT_SECRET')
+# Obtaining client ID and client secret from env. variables
+if os.environ.get('KKBOX_CLIENT_ID') is None:
+    print("Missing environment variable 'KKBOX_CLIENT_ID'.")
+    sys.exit(-1)
+else:
+    app.config['client_id'] = os.environ.get('KKBOX_CLIENT_ID')
+
+if os.environ.get('KKBOX_CLIENT_SECRET') is None:
+    print("Missing environment variable 'KKBOX_CLIENT_SECRET'.")
+    sys.exit(-1)
+else:
+    app.config['client_secret'] = os.environ.get('KKBOX_CLIENT_SECRET')
 
 
 @app.route('/')
@@ -29,10 +39,4 @@ def get_token(methods=['GET']):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage: python3 app.py CLIENT_ID CLIENT_SECRET")
-        sys.exit(-1)
-    else:
-        app.config['client_id'] = sys.argv[1]
-        app.config['client_secret'] = sys.argv[2]
-        app.run(port=8888, debug=True)
+    app.run(port=8888, debug=True)
