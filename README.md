@@ -26,6 +26,7 @@ Thus, for the training project, I wish to design a HIIT timer with KKBOX music s
 ### Python runtime dependencies
 * Flask
 * Requests
+* Gunicorn (Optional, required for Heroku deployment)
 
 ### JavaScript runtime dependencies
 * axios
@@ -34,7 +35,7 @@ Thus, for the training project, I wish to design a HIIT timer with KKBOX music s
 ## Getting started
 
 The server side is written in Python with Flask framework, with [Pipenv](https://docs.pipenv.org/) for managing both dev-time and run-time environment.
-For the client-side, [browserify](http://browserify.org/) and npm is used to manage JavaScript stuff.
+For the client-side, [browserify](http://browserify.org/) and npm is used to manage client side (JavaScript) stuff.
 Before you go any further, please make sure all the software requirements listed in [Requirements](#requirements) are fulfilled.
 
 ### Client side (JavaScript)
@@ -56,16 +57,25 @@ First, install Python dependencies for this project using `pipenv`:
 $ pipenv install --dev
 ```
 
-Now all Python denpencies should all be installed. Start the web server by:
+Now all Python denpencies should be installed.
+
+### Client ID and secret
+
+The client ID and secret are passed to the application by using environment variables `KKBOX_CLIENT_ID` and `KKBOX_CLIENT_SECRET`.
+Please visit [KKBOX developer site](https://developer.kkbox.com/) if you don't have them.
+
 ```shell
-$ pipenv run python3 app.py <CLIENT_ID> <CLIENT_SECRET>
+$ export KKBOX_CLIENT_ID=<CLIENT_ID>
+$ export KKBOX_CLIENT_SECRET=<CLIENT_SECRET>
 ```
 
-where the `<CLIENT_ID>` and `<CLIENT_SECRET>` should be replaced by the *ID* and *Secret* of your application that you created on [KKBOX developer site](https://developer.kkbox.com/).
+Replace `<CLIENT_ID>` and `<CLIENT_SECRET>` with the ID and secret of yours.
 
-For example, if your *ID* and *Secret* are `d209c6a1e4b9271edbfbb18dbe7eb4cf` and `4beb6b50a344f63092b995b6ca18300a` respectively, the command will be:
+### Start the web server
+
+You could start the web server by:
 ```shell
-$ pipenv run python3 app.py d209c6a1e4b9271edbfbb18dbe7eb4cf 4beb6b50a344f63092b995b6ca18300a
+$ pipenv run python3 app.py
 ```
 
 And you should see something like this:
@@ -76,5 +86,5 @@ And you should see something like this:
  * Debugger PIN: 277-151-303
 ```
 
-When you see the ` * Running on http://127.0.0.1:8888/ (Press CTRL+C to quit)` line, it means that the web server is up and running.
+When you see the line ` * Running on http://127.0.0.1:8888/ (Press CTRL+C to quit)`, it means that the web server is up and running.
 You can connect the Timer by entering this address: [http://127.0.0.1:8888](http://127.0.0.1:8888).
