@@ -5,8 +5,11 @@ from flask import Flask
 from flask import redirect, url_for, jsonify
 import requests
 import sys
+import os
 
 app = Flask(__name__)
+app.config['client_id'] = os.environ.get('KKBOX_CLIENT_ID')
+app.config['client_secret'] = os.environ.get('KKBOX_CLIENT_SECRET')
 
 
 @app.route('/')
