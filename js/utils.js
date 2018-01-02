@@ -25,7 +25,6 @@ function searchWorkoutPlaylist (token, offset) {
    * Throws:
    *   Request failed.
    */
-  // console.debug("Searching 'workout' playlist with offset " + offset)
   return axios.get('https://api.kkbox.com/v1.1/search',
     {
       headers: {
@@ -41,7 +40,6 @@ function searchWorkoutPlaylist (token, offset) {
     })
     .then(function (resp) {
       var playlistId = resp.data.playlists.data[0].id
-      // console.debug('Found playlist ID: ' + playlistId)
       return playlistId
     })
 }
@@ -58,7 +56,6 @@ function fetchAccessToken () {
               // Response object contains key 'error' means error occurred.
               throw new Error(resp.data.error)
             } else {
-              // console.debug('Retrieved access token: ' + resp.data.access_token)
               this.accessToken = resp.data.access_token // Global token
               return this.accessToken
             }
