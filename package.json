@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "browserify ./js/main.js > ./static/bundle.js"
+    "build": "browserify ./js/main.js > ./static/bundle.js",
+    "postinstall": "browserify ./js/main.js > ./static/bundle.js"
   },
   "repository": {
     "type": "git",
