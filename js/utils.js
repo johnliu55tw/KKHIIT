@@ -56,8 +56,7 @@ function fetchAccessToken () {
               // Response object contains key 'error' means error occurred.
               throw new Error(resp.data.error)
             } else {
-              this.accessToken = resp.data.access_token // Global token
-              return this.accessToken
+              return resp.data.access_token
             }
           })
           .catch((error) => {
